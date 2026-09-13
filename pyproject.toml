@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "solitaire-cipher-lab"
+version = "0.1.0.dev0"
+description = "Teach and visualize the Solitaire (Pontifex) cipher through replayable execution traces"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "John Hodge" }]
+keywords = ["solitaire", "pontifex", "cipher", "cryptography", "education", "visualization", "stream-cipher"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Education",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Education",
+  "Topic :: Security :: Cryptography",
+]
+dependencies = ["rich>=13.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+solitaire-lab = "solitaire_lab.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/solitaire_lab"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 110
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
