@@ -1,0 +1,11 @@
+{
+ "cipher_difference": "IOZIXJGSJGRZZZZ",
+ "ciphertext_1": "DUJLCKFKADMGBHE",
+ "ciphertext_2": "UFJCEAYRQWUGBHE",
+ "key_cancelled": true,
+ "keystream": "CAPKZZEQWCPSDJG",
+ "passphrase": "SHAREDKEY",
+ "plain_difference": "IOZIXJGSJGRZZZZ",
+ "plaintext_1": "ATTACKATDAWNXXX",
+ "plaintext_2": "RETREATATTENXXX"
+}

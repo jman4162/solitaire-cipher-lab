@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solitaire Cipher Lab — a stream cipher you can hold</title>
+<meta name="description" content="An interactive walkthrough of Schneier's Solitaire (Pontifex) cipher: watch the deck become the keystream, then watch the cipher leak.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%238a3324'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='%23fff'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>A stream cipher you can hold in your hands</h1>
+    <p class="sub">Solitaire — Bruce Schneier's 1999 hand cipher, also called Pontifex — turns an ordinary deck of 54 playing cards into a keystream generator. Here is every step of it, running.</p>
+    <p class="byline">From <a href="https://github.com/jman4162/solitaire-cipher-lab">solitaire-cipher-lab</a>. Every deck state on this page was recorded by that package's engine.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+<p class="lede">Most explanations of stream ciphers ask you to imagine a keystream appearing from a black box. Solitaire doesn't need the black box. Its internal state is a deck of cards, and you can watch the state change.</p>
+
+<div class="warn">
+  <strong>This is a teaching cipher.</strong> Solitaire has known statistical biases — you can measure one yourself at the bottom of this page. Do not use it to protect real information.
+</div>
+
+<h2><span class="num">Section 01</span>The key is the deck</h2>
+
+<p>There is no password to remember and no number to key in. The <em>order of the cards</em> is the key. Two people who shuffle their decks into the same order can talk; anyone else is holding 54 factorial possible orderings, a number with 72 digits in it.</p>
+
+<p>Every card has a value. Clubs are worth 1 to 13, diamonds 14 to 26, hearts 27 to 39, spades 40 to 52. Both jokers are worth 53 — which turns out to matter.</p>
+
+<div class="deck" id="ordered-deck"></div>
+<p class="note">The deck in bridge order. This is the standard unkeyed starting position, used for test vectors — not a key.</p>
+
+<h2><span class="num">Section 02</span>One round, five steps</h2>
+
+<p>A round shuffles the deck in four fixed, entirely deterministic ways, then reads a single card to produce one keystream letter. No randomness is involved anywhere: the same deck always yields the same letters, which is exactly what lets the person at the other end reproduce them.</p>
+
+<p>Step through it. Watch the two jokers wander down the deck, drag the cut points around with them, and eventually select a card.</p>
+
+<div class="player" id="player-1"></div>
+<p class="perma">
+  <span id="perma-1"></span>
+  <button id="copy-1">Copy link to this step</button>
+</p>
+
+<p>Round four is worth stopping on. The count lands on a joker, and a joker has no letter — so the round is thrown away and run again. That discarded round is the single most commonly mis-implemented part of Solitaire, and it is invisible to any test that just encrypts and decrypts: a broken implementation happily decrypts its own broken ciphertext.</p>
+
+<h3>Why the triple cut is the interesting step</h3>
+<p>The two joker moves are small and local. The triple cut is the step that mixes globally: everything above the topmost joker and everything below the bottommost joker trade places wholesale, so a card near the top can be flung to the bottom in one move. The count cut then rotates the whole deck by an amount that depends on the card that happens to be sitting on the bottom. Together they make the next state depend on the whole deck, not just its neighbourhood.</p>
+
+<h2><span class="num">Section 03</span>From cards to letters</h2>
+
+<p>The cipher itself is almost an afterthought. Convert each plaintext letter to a number (A=1 … Z=26), add the keystream number, wrap at 26, convert back. That's it — the entire security of the scheme lives in the deck.</p>
+
+<div class="scroll" id="layers"></div>
+
+<p id="message-summary" class="note"></p>
+
+<p>Decryption is the same operation with a minus sign. This symmetry is why the receiver needs an identically ordered deck and nothing else.</p>
+
+<h2><span class="num">Section 04</span>Never use the same deck twice</h2>
+
+<p>Here is the failure that sinks more real systems than any exotic attack. Encrypt two messages with the <em>same</em> starting deck and an attacker can subtract one ciphertext from the other. The keystream — the thing you were protecting — cancels out completely.</p>
+
+<pre class="block" id="reuse-algebra"></pre>
+<div class="scroll" id="reuse"></div>
+
+<p>The attacker never learns the key and does not need to. They learn the difference between your two plaintexts, and with any guess about one message, they get the other. This is not a flaw in Solitaire specifically; it is true of every additive stream cipher. Solitaire just makes it visible.</p>
+
+<h2><span class="num">Section 05</span>It looks random. It isn't.</h2>
+
+<p>The keystream above looks like noise. Here is the test that says otherwise, and you can run it yourself in a few seconds.</p>
+
+<p>In an ideal stream over 26 letters, the chance that any letter equals the one before it is 1 in 26 — about 3.85%. Solitaire repeats more often than that:</p>
+
+<div class="stat-row" id="bias-stats"></div>
+<div class="bars" id="bias-bars"></div>
+
+<p id="bias-detail" class="note"></p>
+
+<p>That gap is small, consistent, and fatal to the claim that the output is indistinguishable from random — which is the property a stream cipher is supposed to have. The bias was spotted by Paul Crowley in 1999, shortly after the cipher was published, and analysed in detail by Daniel Shiu in 2019. Schneier has also acknowledged that the deck transformation is not invertible in the way originally described: different earlier deck states can converge on the same later one. That does not stop ordinary encryption and decryption working, since both sides generate the keystream forwards.</p>
+
+<p>The lesson is not "Solitaire is broken, use something else." It is that <em>looking</em> scrambled and <em>being</em> unpredictable are different claims, and that the distance between them is measured, not argued. Modern stream ciphers are designed from the start so that no statistic like this one separates their output from noise — and they are published precisely so that people can go looking.</p>
+
+<h2><span class="num">Section 06</span>Run it yourself</h2>
+
+<p>Everything on this page was generated by the engine in the package, and the page contains no cipher code of its own — it replays recorded traces. That is deliberate: a diagram that reimplements the algorithm eventually disagrees with it.</p>
+
+<pre class="block">pip install solitaire-cipher-lab
+
+solitaire-lab teach --ordered-deck --step
+solitaire-lab encrypt -p "CRYPTONOMICON" "DO NOT USE PC" --show-work
+solitaire-lab worksheet -p "CRYPTONOMICON" -r 20
+solitaire-lab analyze bias --samples 5000</pre>
+
+<p><code>worksheet</code> is the one to try with a real deck in your hands. It prints the deck state after every round, so when your physical shuffle drifts from the machine's you can find the exact round where it happened.</p>
+
+<footer>
+  <p><a href="https://github.com/jman4162/solitaire-cipher-lab">Source on GitHub</a> · The Solitaire algorithm was published freely by <a href="https://www.schneier.com/academic/solitaire/">Bruce Schneier</a>. This page and the package are MIT licensed.</p>
+</footer>
+
+</main>
+
+<script type="module">
+import { TracePlayer, renderDeck, valueLetter, cardValue } from "./player.js";
+
+const load = (name) => fetch(`data/${name}.json`).then((r) => r.json());
+
+const ORDERED = [];
+for (const suit of ["C", "D", "H", "S"])
+  for (const rank of ["A","2","3","4","5","6","7","8","9","T","J","Q","K"]) ORDERED.push(rank + suit);
+ORDERED.push("JA", "JB");
+renderDeck(document.getElementById("ordered-deck"), ORDERED, []);
+
+/* --- Section 02: the step-through player, with deep links --- */
+load("keystream-trace").then((trace) => {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const player = new TracePlayer(document.getElementById("player-1"), trace, {
+    onChange: (p) => {
+      document.getElementById("perma-1").textContent = `step ${p.index + 1}`;
+    },
+  });
+  const start = Number(params.get("step"));
+  if (Number.isFinite(start) && start > 0) player.go(start - 1);
+  document.getElementById("copy-1").addEventListener("click", async (e) => {
+    const url = `${location.origin}${location.pathname}#step=${player.index + 1}`;
+    history.replaceState(null, "", `#step=${player.index + 1}`);
+    try { await navigator.clipboard.writeText(url); e.target.textContent = "Copied"; }
+    catch { e.target.textContent = "Link in address bar"; }
+    setTimeout(() => (e.target.textContent = "Copy link to this step"), 1600);
+  });
+});
+
+/* --- Section 03: plaintext + keystream = ciphertext --- */
+load("message-trace").then((d) => {
+  const rows = [
+    ["plaintext", d.plaintext.split(""), "p"],
+    ["", d.plaintext.split("").map((c) => c.charCodeAt(0) - 64), "v"],
+    ["keystream", d.keystream_letters, "k"],
+    ["", d.keystream_values, "v"],
+    ["ciphertext", d.ciphertext.split(""), "c"],
+  ];
+  const table = document.createElement("table");
+  table.className = "layers";
+  rows.forEach(([label, cells, cls], i) => {
+    const tr = table.insertRow();
+    if (i === 4) tr.className = "sum";
+    const th = document.createElement("th");
+    th.textContent = label;
+    tr.appendChild(th);
+    cells.forEach((value) => {
+      const td = tr.insertCell();
+      td.className = cls;
+      td.textContent = value;
+    });
+  });
+  document.getElementById("layers").replaceChildren(table);
+  document.getElementById("message-summary").textContent =
+    `Deck keyed with the passphrase "${d.passphrase}". Each ciphertext letter is the plaintext letter plus the keystream letter, wrapping at 26.`;
+});
+
+/* --- Section 04: key reuse --- */
+load("reuse").then((d) => {
+  document.getElementById("reuse-algebra").innerHTML =
+    `C1 = P1 + <span class="k">K</span>\nC2 = P2 + <span class="k">K</span>\n\n` +
+    `<span class="eq">C1 - C2  =  (P1 + K) - (P2 + K)  =  P1 - P2</span>`;
+  const rows = [
+    ["P1", d.plaintext_1, "p"], ["P2", d.plaintext_2, "p"],
+    ["K", d.keystream, "k"],
+    ["C1", d.ciphertext_1, "c"], ["C2", d.ciphertext_2, "c"],
+    ["C1 − C2", d.cipher_difference, "p"], ["P1 − P2", d.plain_difference, "p"],
+  ];
+  const table = document.createElement("table");
+  table.className = "layers";
+  rows.forEach(([label, text, cls]) => {
+    const tr = table.insertRow();
+    const th = document.createElement("th");
+    th.textContent = label;
+    tr.appendChild(th);
+    text.split("").forEach((ch) => {
+      const td = tr.insertCell();
+      td.className = cls;
+      td.textContent = ch;
+    });
+  });
+  document.getElementById("reuse").replaceChildren(table);
+});
+
+/* --- Section 05: the measured bias --- */
+load("bias").then((d) => {
+  const pct = (x) => (x * 100).toFixed(3) + "%";
+  document.getElementById("bias-stats").innerHTML = `
+    <div class="stat"><div class="n">${pct(d.ideal_rate)}</div><div class="l">ideal repeat rate (1 in 26)</div></div>
+    <div class="stat"><div class="n warnish">${pct(d.observed_rate)}</div><div class="l">Solitaire's measured rate</div></div>
+    <div class="stat"><div class="n warnish">${d.excess_ratio.toFixed(2)}×</div><div class="l">more repeats than it should have</div></div>`;
+  const scale = Math.max(d.ideal_rate, d.observed_rate) * 1.25;
+  const bar = (label, value, cls) => `
+    <div class="bar-row">
+      <span class="lab">${label}</span>
+      <span class="bar-track"><span class="bar-fill ${cls}" style="width:${(value / scale) * 100}%"></span></span>
+      <span class="val">${pct(value)}</span>
+    </div>`;
+  document.getElementById("bias-bars").innerHTML =
+    bar("ideal stream", d.ideal_rate, "ideal") + bar("Solitaire", d.observed_rate, "actual");
+  document.getElementById("bias-detail").textContent =
+    `Measured over ${d.pairs_examined.toLocaleString()} adjacent pairs from ${d.samples.toLocaleString()} randomly shuffled decks — ` +
+    `a repeat roughly every ${(1 / d.observed_rate).toFixed(1)} letters instead of every 26.`;
+});
+</script>
+</body>
+</html>
