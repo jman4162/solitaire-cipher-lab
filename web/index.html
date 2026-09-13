@@ -65,16 +65,88 @@
 
 <p>Decryption is the same operation with a minus sign. This symmetry is why the receiver needs an identically ordered deck and nothing else.</p>
 
-<h2><span class="num">Section 04</span>Never use the same deck twice</h2>
+<h2><span class="num">Section 04</span>Try it with your own key</h2>
 
-<p>Here is the failure that sinks more real systems than any exotic attack. Encrypt two messages with the <em>same</em> starting deck and an attacker can subtract one ciphertext from the other. The keystream — the thing you were protecting — cancels out completely.</p>
+<p>Everything above was recorded in advance. This part runs the cipher in your browser — the same algorithm, checked against the Python engine trace-for-trace in CI, so what you see here is what the package does.</p>
+
+<div class="lab">
+  <fieldset class="keymode">
+    <legend>How should the deck be keyed?</legend>
+    <label><input type="radio" name="keymode" value="passphrase" id="km-pass" checked> Passphrase</label>
+    <label><input type="radio" name="keymode" value="shuffle" id="km-shuf"> Shuffle one for me</label>
+    <label><input type="radio" name="keymode" value="paste" id="km-paste"> Paste a deck</label>
+  </fieldset>
+
+  <div id="key-passphrase" class="field">
+    <label for="live-passphrase">Passphrase</label>
+    <input type="text" id="live-passphrase" value="CRYPTONOMICON" autocomplete="off" spellcheck="false">
+    <p class="note">Letters only; everything else is ignored. Both ends need the same phrase.</p>
+  </div>
+
+  <div id="key-shuffle" class="field" hidden>
+    <button type="button" id="live-shuffle">Shuffle a deck</button>
+    <p class="note" id="live-shuffle-note">A real key is a shuffled deck, not a word. You would have to get this exact order to the other person somehow — which is the hard part of every cipher.</p>
+  </div>
+
+  <div id="key-paste" class="field" hidden>
+    <label for="live-deck">54 card codes</label>
+    <textarea id="live-deck" rows="3" spellcheck="false" placeholder="AC 2C 3C ... KS JA JB"></textarea>
+    <p class="note">Ranks A 2-9 T J Q K, suits C D H S, plus JA and JB. <button type="button" class="linkish" id="live-paste-ordered">Fill with the ordered deck</button> — or type in the order of a deck you just shuffled by hand.</p>
+  </div>
+
+  <div class="field">
+    <label for="live-message">Message</label>
+    <input type="text" id="live-message" value="DO NOT USE PC" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="controls">
+    <button type="button" class="primary" id="live-run">Encrypt</button>
+    <button type="button" id="live-copy-deck">Link to this deck</button>
+  </div>
+
+  <p class="error" id="live-error" role="alert" hidden></p>
+
+  <div class="deck compact" id="live-deck-preview" role="img" aria-label="The keyed deck" hidden></div>
+
+  <div id="live-results" hidden>
+    <p class="cipher-out" id="live-cipher" aria-live="polite"></p>
+    <p class="note" id="live-summary"></p>
+    <div class="scroll" id="live-layers"></div>
+  </div>
+</div>
+
+<div id="live-player-wrap" hidden>
+  <h3>Your deck, one step at a time</h3>
+  <p>The same player as above, now running your key. Every state below was computed in this tab.</p>
+  <div class="player" id="live-player"></div>
+</div>
+
+<div id="live-reuse-wrap" hidden>
+  <h3>Now send a second message with the same deck</h3>
+  <p>Do not reset the deck — just encrypt again from the same starting order, as someone in a hurry would.</p>
+  <div class="lab">
+    <div class="field">
+      <label for="live-second">Second message</label>
+      <input type="text" id="live-second" value="RETREAT AT TEN" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="controls"><button type="button" class="primary" id="live-reuse-run">Encrypt with the same deck</button></div>
+    <div id="live-reuse-out" hidden>
+      <div class="scroll" id="live-reuse-table"></div>
+      <p class="verdict" id="live-reuse-verdict" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+
+<h2><span class="num">Section 05</span>Never use the same deck twice</h2>
+
+<p>If you ran the section above twice, you have already seen this. Here is the failure written out: encrypt two messages with the <em>same</em> starting deck and an attacker can subtract one ciphertext from the other. The keystream — the thing you were protecting — cancels out completely.</p>
 
 <pre class="block" id="reuse-algebra"></pre>
 <div class="scroll" id="reuse"></div>
 
 <p>The attacker never learns the key and does not need to. They learn the difference between your two plaintexts, and with any guess about one message, they get the other. This is not a flaw in Solitaire specifically; it is true of every additive stream cipher. Solitaire just makes it visible.</p>
 
-<h2><span class="num">Section 05</span>It looks random. It isn't.</h2>
+<h2><span class="num">Section 06</span>It looks random. It isn't.</h2>
 
 <p>The keystream above looks like noise. Here is the test that says otherwise, and you can run it yourself in a few seconds.</p>
 
@@ -89,7 +161,7 @@
 
 <p>The lesson is not "Solitaire is broken, use something else." It is that <em>looking</em> scrambled and <em>being</em> unpredictable are different claims, and that the distance between them is measured, not argued. Modern stream ciphers are designed from the start so that no statistic like this one separates their output from noise — and they are published precisely so that people can go looking.</p>
 
-<h2><span class="num">Section 06</span>Run it yourself</h2>
+<h2><span class="num">Section 07</span>Run it yourself</h2>
 
 <p>Everything on this page was generated by the engine in the package, and the page contains no cipher code of its own — it replays recorded traces. That is deliberate: a diagram that reimplements the algorithm eventually disagrees with it.</p>
 
@@ -110,6 +182,7 @@ solitaire-lab analyze bias --samples 5000</pre>
 
 <script type="module">
 import { TracePlayer, renderDeck } from "./player.js";
+import { initLive } from "./live.js";
 
 const load = (name) => fetch(`data/${name}.json`).then((r) => r.json());
 
@@ -118,6 +191,7 @@ for (const suit of ["C", "D", "H", "S"])
   for (const rank of ["A","2","3","4","5","6","7","8","9","T","J","Q","K"]) ORDERED.push(rank + suit);
 ORDERED.push("JA", "JB");
 renderDeck(document.getElementById("ordered-deck"), ORDERED, []);
+initLive();
 
 /* --- Section 02: the step-through player, with deep links --- */
 load("keystream-trace").then((trace) => {

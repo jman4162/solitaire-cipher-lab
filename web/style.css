@@ -61,6 +61,8 @@
 
 * { box-sizing: border-box; }
 
+[hidden] { display: none !important; }
+
 html { overflow-x: hidden; }
 
 body {
@@ -268,3 +270,76 @@ footer { border-top: 1px solid var(--rule); margin-top: 4rem; padding-top: 1.5re
 }
 
 :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; border-radius: 3px; }
+
+/* ---- the live lab (section 04) ---- */
+.lab {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.1rem;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+}
+.lab .field { display: flex; flex-direction: column; gap: .35rem; }
+.lab .field > label { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); }
+.lab .note { margin: 0; }
+
+fieldset.keymode {
+  border: 0; padding: 0; margin: 0;
+  display: flex; flex-wrap: wrap; gap: .3rem .95rem; align-items: center;
+}
+fieldset.keymode legend {
+  padding: 0; margin-bottom: .45rem;
+  font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint);
+}
+fieldset.keymode label { font-size: .9rem; display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; }
+fieldset.keymode input { accent-color: var(--accent); }
+
+.lab input[type="text"], .lab textarea {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: .9rem;
+  padding: .5rem .6rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--ink);
+  width: 100%;
+  max-width: 100%;
+}
+.lab textarea { resize: vertical; line-height: 1.5; }
+.lab input[type="text"]:focus, .lab textarea:focus { border-color: var(--accent); outline: none; }
+
+button.linkish {
+  background: none; border: 0; padding: 0;
+  color: var(--accent); font: inherit; font-size: inherit;
+  text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+}
+button.linkish:hover { opacity: .8; color: var(--accent); }
+
+.error {
+  background: var(--brass-soft);
+  border-left: 3px solid var(--brass);
+  border-radius: 0 6px 6px 0;
+  padding: .6rem .8rem;
+  font-size: .88rem;
+  margin: 0;
+}
+.cipher-out {
+  font-family: var(--mono);
+  font-size: clamp(1rem, 3.4vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--brass);
+  word-break: break-word;
+  margin: .2rem 0 .3rem;
+}
+.verdict {
+  font-size: .92rem;
+  color: var(--ink-dim);
+  border-left: 3px solid var(--good);
+  padding-left: .8rem;
+  margin: .9rem 0 0;
+}

@@ -42,15 +42,46 @@ The headline output is a single page — prose interleaved with live widgets —
 that walks through the cipher and ends by demonstrating two of its weaknesses.
 It lives in [`web/`](web/) and deploys to GitHub Pages.
 
-The page contains **no cipher code**. It replays trace files recorded by the
-engine, which is what guarantees it shows what the implementation actually does
-rather than an idealised retelling. A test asserts `player.js` cannot run
-Solitaire, and another asserts the committed traces still match a fresh build.
+Sections 1-3 replay trace files recorded by the Python engine, so they cannot
+show anything the implementation does not do. Section 4 runs the cipher live in
+the browser, which needs a second implementation — see below for how that is
+kept honest. `player.js` still contains no cipher code at all; a test enforces
+it, and another asserts the committed traces match a fresh build.
 
 ```sh
 python scripts/build_web.py     # regenerate the page's data from the engine
 python -m http.server -d web    # then open http://localhost:8000
 ```
+
+## The JavaScript engine, and why it is allowed to exist
+
+Letting readers encrypt their own messages means shipping a second
+implementation of Solitaire — precisely the drift this package was built to
+distrust. `web/engine.js` is tolerated because it is not checked against
+ciphertexts. It is checked against **traces**:
+
+```sh
+python scripts/gen_conformance.py            # 516 cases from the Python engine
+node --test tests/conformance/*.test.mjs     # every trace must deep-equal
+```
+
+Every event, every `affected` index and every metadata key must match what
+Python recorded, across 300 random decks, 100 passphrase keyings, 100
+encryptions, the published vectors and 12 decks that put the jokers exactly
+where implementations go wrong. A joker landing one position off fails the
+build — and so does a single wrong metadata flag on an otherwise correct
+keystream, which is the point of comparing traces rather than outputs.
+`tests/test_conformance_harness.py` proves the net has no holes by mutating the
+engine four ways and asserting the suite goes red each time.
+
+The full vector set (~24 MB) is generated in CI, not committed;
+`tests/conformance/smoke.json` holds 27 cases so `node --test` runs offline.
+
+Cipher knowledge is confined to `engine.js` by an architecture test. The one
+other duplication is wording: `web/explain.js` mirrors
+`solitaire_lab.render.explain` for traces made in the browser, and
+`tests/test_js_explain.py` renders the same events through both and fails if a
+single character differs.
 
 ## Status
 
@@ -62,8 +93,9 @@ python -m http.server -d web    # then open http://localhost:8000
 | Cryptanalysis lab (key reuse, keystream bias) | ✅ |
 | Interactive web explainer | ✅ |
 | Standalone SVG renderer for static figures (`solitaire-lab render`) | ✅ |
-| Test suite — known-answer, property, CLI, architecture, page data (369 tests) | ✅ |
-| Live "encrypt your own message" in the browser | planned — see [docs/v0.2-live-engine.md](docs/v0.2-live-engine.md) |
+| Test suite — known-answer, property, CLI, architecture, page data (381 tests) | ✅ |
+| Live "encrypt your own message" in the browser | ✅ |
+| JS engine conformance against Python traces (516 cases) | ✅ |
 
 ## Command line
 
