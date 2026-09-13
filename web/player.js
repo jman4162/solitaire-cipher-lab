@@ -5,9 +5,9 @@
  * engine, which is what guarantees the page shows what the implementation
  * actually does rather than an idealised retelling of it.
  *
- * The only thing it does author is wording: a trace records structured facts,
- * and phrasing them is a rendering concern, exactly as it is in the Python
- * renderer. */
+ * It does not even phrase the steps: the explanations shown come from the
+ * Python renderer at build time, so the page and the terminal say the same
+ * thing about the same event. All this file knows is how to draw a card. */
 
 const SUIT_SYMBOL = { C: "♣", D: "♦", H: "♥", S: "♠" };
 const RED_SUITS = new Set(["D", "H"]);
@@ -34,50 +34,6 @@ function cardLabel(code) {
   const rank = code[0] === "T" ? "10" : code[0];
   const suit = code[1];
   return { text: rank + SUIT_SYMBOL[suit], cls: RED_SUITS.has(suit) ? "red" : "" };
-}
-
-/** Phrase a trace event. Mirrors solitaire_lab/render/explain.py. */
-function explain(event) {
-  const m = event.meta || {};
-  switch (event.phase) {
-    case "move_joker_a":
-    case "move_joker_b": {
-      const positions = m.positions === 1 ? "one position" : `${m.positions} positions`;
-      if (m.wrapped) {
-        return `Joker ${m.joker} moves down ${positions}. It ran off the bottom, so it wraps round to
-          just below the top card — not to the top itself — and ends at position ${m.to_index + 1}.`;
-      }
-      return `Joker ${m.joker} moves down ${positions}, from position ${m.from_index + 1} to ${m.to_index + 1}.`;
-    }
-    case "triple_cut":
-      if (m.top_len === 0 && m.bottom_len === 0) {
-        return "The jokers are already at the very top and bottom, so there is nothing outside them to swap.";
-      }
-      return `Everything outside the two jokers switches sides: the ${m.top_len} card(s) above the first
-        joker and the ${m.bottom_len} below the second trade places. The ${m.middle_len} cards from one
-        joker to the other stay exactly as they were.`;
-    case "count_cut":
-      if (m.from_letter) {
-        const src = m.letter ? `the passphrase letter ${m.letter} (worth ${m.count})` : `a count of ${m.count}`;
-        return `An extra count cut driven by ${src}: move that many cards from the top to just above the bottom card.`;
-      }
-      if (m.identity) {
-        return `The bottom card is ${m.bottom_card}, a joker, worth 53. Cutting 53 of the 54 cards to just
-          above the bottom card puts every one of them straight back — the deck is unchanged.`;
-      }
-      return `The bottom card is ${m.bottom_card}, worth ${m.count}. Move ${m.count} card(s) from the top
-        to just above it. The bottom card itself never moves.`;
-    case "output":
-      if (m.is_joker) {
-        return `The top card is ${m.top_card}, worth ${m.count}. Counting ${m.count} down lands on
-          ${m.output_card} — a joker. Jokers produce no output, so this round is discarded and the whole
-          thing runs again.`;
-      }
-      return `The top card is ${m.top_card}, worth ${m.count}. Counting ${m.count} down lands on
-        ${m.output_card}. That card's value is this round's keystream number. The deck is not changed here.`;
-    default:
-      return "";
-  }
 }
 
 function renderDeck(el, codes, highlight) {
@@ -115,8 +71,8 @@ export class TracePlayer {
         <div class="step-name"><span class="round"></span> <span class="title"></span></div>
         <div class="phases"></div>
       </div>
-      <div class="deck compact"></div>
-      <p class="explain"></p>
+      <div class="deck compact" role="img" aria-label="The deck after this step"></div>
+      <p class="explain" aria-live="polite"></p>
       <div class="controls">
         <button class="first" title="Back to the start">&#8676;</button>
         <button class="prev">&#8592; Prev</button>
@@ -186,8 +142,9 @@ export class TracePlayer {
     const event = this.events[this.index];
     renderDeck(this.els.deck, event.after, event.affected);
     this.els.round.textContent = `Round ${event.round}`;
-    this.els.title.textContent = HEADLINES[event.phase] || event.phase;
-    this.els.explain.textContent = explain(event).replace(/\s+/g, " ").trim();
+    const words = (this.trace.explanations || [])[this.index] || {};
+    this.els.title.textContent = words.headline || HEADLINES[event.phase] || event.phase;
+    this.els.explain.textContent = words.text || "";
     this.els.progress.value = String(this.index);
     this.els.counter.textContent = `${this.index + 1} / ${this.events.length}`;
     this.els.prev.disabled = this.index === 0;
@@ -210,7 +167,7 @@ export class TracePlayer {
     for (let i = 0; i <= this.index; i++) {
       const e = this.events[i];
       if (e.phase !== "output") continue;
-      if (e.output) parts.push(valueLetter(e.meta.output_value ?? cardValue(e.output)));
+      if (e.meta.output_letter) parts.push(e.meta.output_letter);
       else skipped++;
     }
     this.els.out.innerHTML = parts.length
@@ -220,18 +177,4 @@ export class TracePlayer {
   }
 }
 
-const SUIT_OFFSET = { C: 0, D: 13, H: 26, S: 39 };
-const RANK_VALUE = { A: 1, T: 10, J: 11, Q: 12, K: 13 };
-
-function cardValue(code) {
-  if (code === "JA" || code === "JB") return 53;
-  const rank = RANK_VALUE[code[0]] ?? Number(code[0]);
-  return SUIT_OFFSET[code[1]] + rank;
-}
-
-function valueLetter(value) {
-  const v = value > 26 ? value - 26 : value;
-  return String.fromCharCode(64 + v);
-}
-
-export { renderDeck, explain, cardValue, valueLetter, cardLabel };
+export { renderDeck, cardLabel };

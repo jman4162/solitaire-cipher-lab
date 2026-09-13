@@ -8,6 +8,7 @@ lives here.
 from __future__ import annotations
 
 import random
+import secrets
 
 from .cards import letter_to_value
 from .codec import normalize
@@ -31,12 +32,14 @@ def explicit_deck(text: str) -> Deck:
 def shuffled_deck(seed: int | None = None) -> Deck:
     """A randomly shuffled deck.
 
-    ``seed`` makes a shuffle reproducible for teaching and testing.  A seeded
-    shuffle is emphatically not a secure way to key a real message -- the seed
-    becomes the key, and it is far smaller than the deck it stands for.
+    With no ``seed`` the shuffle comes from the operating system's CSPRNG.
+    ``seed`` makes a shuffle reproducible for teaching and testing -- and is
+    emphatically not a secure way to key a real message: the seed becomes the
+    key, and it is far smaller than the deck it stands for.
     """
     cards = list(ORDERED_DECK)
-    random.Random(seed).shuffle(cards)
+    rng = secrets.SystemRandom() if seed is None else random.Random(seed)
+    rng.shuffle(cards)
     return validate_deck(cards)
 
 

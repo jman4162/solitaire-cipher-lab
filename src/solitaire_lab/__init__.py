@@ -15,6 +15,9 @@ A diagram therefore cannot drift out of step with the code that produced it.
    biases and is not suitable for protecting real information.
 """
 
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _version
+
 from .cards import Card, Joker, Suit, letter_to_value, value_to_letter
 from .cipher import CipherResult, decrypt, encrypt
 from .deck import ORDERED_DECK, Deck, format_deck, parse_deck, validate_deck
@@ -22,7 +25,10 @@ from .keying import explicit_deck, ordered_deck, passphrase_deck, shuffled_deck
 from .keystream import KeystreamResult, generate, generate_fast
 from .trace import Trace, TraceEvent, replay
 
-__version__ = "0.1.0.dev0"
+try:
+    __version__ = _version("solitaire-cipher-lab")
+except PackageNotFoundError:  # running from a source checkout without install
+    __version__ = "0.0.0+unknown"
 
 __all__ = [
     "Card",

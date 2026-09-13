@@ -19,6 +19,7 @@ from .deck import Deck, format_deck
 from .keying import explicit_deck, ordered_deck, passphrase_deck, shuffled_deck
 from .keystream import generate
 from .render.rich_render import cipher_table, console, deck_text, render_event
+from .render.svg import deck_svg, event_svg, trace_svg
 from .trace.schema import to_json
 
 __all__ = ["main", "build_parser"]
@@ -184,6 +185,28 @@ def cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_render(args: argparse.Namespace) -> int:
+    """Write an SVG figure: a keyed deck, one step, or whole rounds."""
+    deck = resolve_deck(args)
+    if args.what == "deck":
+        svg = deck_svg(deck, title="Keyed deck")
+    else:
+        trace = generate(deck, args.rounds, trace=True).trace
+        if args.what == "step":
+            if not 1 <= args.step <= len(trace.events):
+                raise ValueError(f"step must be between 1 and {len(trace.events)}")
+            svg = event_svg(trace.events[args.step - 1], caption=not args.no_caption)
+        else:
+            svg = trace_svg(trace, caption=not args.no_caption)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(svg)
+        console.print(f"[green]wrote[/] {args.output} ({len(svg) / 1024:.1f} KiB)")
+    else:
+        print(svg)
+    return 0
+
+
 def cmd_analyze(args: argparse.Namespace) -> int:
     from .analysis import bias, reuse
 
@@ -251,6 +274,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("-o", "--output", type=Path)
     p.add_argument("--compact", action="store_true")
     p.set_defaults(func=cmd_export)
+
+    p = sub.add_parser("render", help="write an SVG figure of a deck, a step, or whole rounds")
+    add_key_options(p)
+    p.add_argument("what", choices=["deck", "step", "rounds"], nargs="?", default="rounds")
+    p.add_argument("-r", "--rounds", type=int, default=1, help="rounds to trace (keystream letters)")
+    p.add_argument("-s", "--step", type=int, default=1, help="with 'step': which event, 1-based")
+    p.add_argument("--no-caption", action="store_true", help="omit the explanation text")
+    p.add_argument("-o", "--output", type=Path)
+    p.set_defaults(func=cmd_render)
 
     p = sub.add_parser("analyze", help="cryptanalysis experiments")
     p.add_argument("experiment", choices=["reuse", "bias"])

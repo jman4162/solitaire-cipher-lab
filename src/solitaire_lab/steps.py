@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .cards import JOKER_VALUE, Card, Joker
+from .cards import JOKER_VALUE, Card, Joker, value_to_letter
 from .deck import Deck, joker_indices
 
 __all__ = [
@@ -186,6 +186,8 @@ def output_card(deck: Deck) -> StepResult:
             "output_index": index,
             "output_card": card.code,
             "is_joker": card.is_joker,
+            "output_value": None if card.is_joker else card.value,
+            "output_letter": None if card.is_joker else value_to_letter(card.value),
         },
         output=None if card.is_joker else card,
     )

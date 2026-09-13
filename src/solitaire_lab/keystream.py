@@ -105,6 +105,7 @@ def generate_fast(deck: Deck, length: int) -> tuple[int, ...]:
     difference between a 12-second bias run and a 40-second one, with several
     million event objects never allocated.
     """
+    validate_deck(deck)
     cards = list(deck)
     jokers = [card for card in cards if card.is_joker]
     joker_a, joker_b = (jokers[0], jokers[1]) if jokers[0].joker.value == "A" else (jokers[1], jokers[0])

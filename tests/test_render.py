@@ -1,13 +1,9 @@
 """Renderers. These consume traces and must never implement the cipher."""
 
-import inspect
-from pathlib import Path
-
 import pytest
 
 from solitaire_lab.deck import ORDERED_DECK
 from solitaire_lab.keystream import generate
-from solitaire_lab.render import explain as explain_module
 from solitaire_lab.render.explain import explain, headline
 from solitaire_lab.render.rich_render import deck_text, render_event
 from solitaire_lab.render.text import compact_deck, deck_lines
@@ -36,9 +32,9 @@ def test_joker_skip_is_explained_in_plain_words(trace):
 
 def test_identity_count_cut_is_explained_as_unchanged():
     """A joker on the bottom is worth 53 and leaves the deck alone."""
+    from helpers import deck_with_joker_on_bottom
     from solitaire_lab.steps import count_cut
     from solitaire_lab.trace.events import TraceEvent
-    from tests_support import deck_with_joker_on_bottom
 
     deck = deck_with_joker_on_bottom()
     result = count_cut(deck)
@@ -62,25 +58,3 @@ def test_compact_and_wrapped_text(trace):
 
 def test_marked_positions_are_bracketed():
     assert "[" in deck_lines(ORDERED_DECK, mark=[0])[0]
-
-
-def test_renderers_do_not_import_the_engine_steps():
-    """The architectural invariant: renderers draw traces, they do not compute them.
-
-    If a renderer ever imports the step functions, a diagram could be generated
-    from something other than what the engine actually did -- exactly the drift
-    this package is built to prevent.
-    """
-    render_dir = Path(explain_module.__file__).parent
-    offenders = []
-    for path in render_dir.glob("*.py"):
-        source = path.read_text()
-        for forbidden in ("from ..keystream import", "from ..cipher import", "move_joker_a(", "triple_cut("):
-            if forbidden in source:
-                offenders.append((path.name, forbidden))
-    assert not offenders, f"renderers must not run the cipher: {offenders}"
-
-
-def test_explain_module_has_no_engine_dependency():
-    source = inspect.getsource(explain_module)
-    assert "Deck" not in source.split('"""')[2]

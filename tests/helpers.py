@@ -27,3 +27,9 @@ def deck_with_jokers_at(first: int, second: int):
         if cards[i] is None:
             cards[i] = next(pips)
     return validate_deck(cards)
+
+
+def deck_with_joker_on_bottom():
+    """A valid deck whose bottom card is a joker (value 53)."""
+    rest = [c for c in ORDERED_DECK if c != JB]
+    return validate_deck(rest + [JB])

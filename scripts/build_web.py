@@ -25,12 +25,24 @@ from solitaire_lab.cipher import encrypt  # noqa: E402
 from solitaire_lab.deck import ORDERED_DECK  # noqa: E402
 from solitaire_lab.keying import passphrase_deck  # noqa: E402
 from solitaire_lab.keystream import generate  # noqa: E402
+from solitaire_lab.render.explain import explain, headline  # noqa: E402
 from solitaire_lab.trace.schema import to_dict  # noqa: E402
 
 DATA = ROOT / "web" / "data"
 
 DEMO_PASSPHRASE = "CRYPTONOMICON"
 DEMO_MESSAGE = "DONOTUSEPC"
+
+
+def _with_explanations(payload: dict, trace) -> dict:
+    """Attach per-event wording from the Python renderer.
+
+    Kept outside the trace schema on purpose: wording is presentation, and the
+    wire format stays free of it. But generating it here rather than in JS
+    means one explanation engine, not two that drift.
+    """
+    payload["explanations"] = [{"headline": headline(e), "text": explain(e)} for e in trace.events]
+    return payload
 
 
 def build_keystream_trace() -> dict:
@@ -40,7 +52,7 @@ def build_keystream_trace() -> dict:
     implementations get wrong, and the one worth showing a reader early.
     """
     result = generate(ORDERED_DECK, 6, trace=True)
-    payload = to_dict(result.trace)
+    payload = _with_explanations(to_dict(result.trace), result.trace)
     payload["title"] = "Six rounds from an unkeyed deck"
     payload["letters"] = result.letters
     return payload
@@ -50,7 +62,7 @@ def build_message_trace() -> dict:
     """A full encryption under a passphrase-keyed deck."""
     deck, _ = passphrase_deck(DEMO_PASSPHRASE)
     result = encrypt(DEMO_MESSAGE, deck, trace=True)
-    payload = to_dict(result.trace)
+    payload = _with_explanations(to_dict(result.trace), result.trace)
     payload["title"] = f"Encrypting {DEMO_MESSAGE} with passphrase {DEMO_PASSPHRASE}"
     payload["passphrase"] = DEMO_PASSPHRASE
     payload["plaintext"] = DEMO_MESSAGE

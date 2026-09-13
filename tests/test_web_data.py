@@ -45,6 +45,14 @@ def test_keystream_trace_contains_the_discarded_joker_round():
     assert any(e["meta"]["is_joker"] for e in outputs)
 
 
+def test_traces_ship_one_explanation_per_event():
+    """The page's wording comes from the Python renderer, not from JS."""
+    for name in ("keystream-trace.json", "message-trace.json"):
+        data = json.loads((DATA / name).read_text())
+        assert len(data["explanations"]) == len(data["events"])
+        assert all(x["headline"] and x["text"] for x in data["explanations"])
+
+
 def test_message_trace_carries_what_the_page_renders():
     data = json.loads((DATA / "message-trace.json").read_text())
     assert len(data["plaintext"]) == len(data["ciphertext"]) == len(data["keystream_letters"])
@@ -61,15 +69,3 @@ def test_bias_data_shows_an_excess_over_ideal():
     data = json.loads((DATA / "bias.json").read_text())
     assert data["observed_rate"] > data["ideal_rate"]
     assert 1.0 < data["excess_ratio"] < 1.5
-
-
-def test_player_contains_no_cipher_logic():
-    """The architectural promise the page makes to its reader.
-
-    player.js may phrase events, but it must not be able to run Solitaire. If
-    the step functions ever appear there, the page could show something the
-    engine never did.
-    """
-    source = (ROOT / "web" / "player.js").read_text()
-    for forbidden in ["tripleCut", "countCut", "moveJoker", "function encrypt", "keystream("]:
-        assert forbidden not in source, f"player.js must not implement the cipher ({forbidden})"

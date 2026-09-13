@@ -52,8 +52,11 @@ def validate_deck(deck: Iterable[Card]) -> Deck:
         raise ValueError(f"deck must hold {DECK_SIZE} cards, got {len(deck)}")
     if set(deck) != set(ORDERED_DECK):
         missing = sorted(c.code for c in set(ORDERED_DECK) - set(deck))
-        extra = sorted(c.code for c in set(deck) - set(ORDERED_DECK))
-        raise ValueError(f"deck is not a permutation of 54 cards (missing {missing}, duplicated {extra})")
+        seen: set[Card] = set()
+        duplicated = sorted({c.code for c in deck if c in seen or seen.add(c)})
+        raise ValueError(
+            f"deck is not a permutation of 54 cards (missing {missing}, duplicated {duplicated})"
+        )
     return deck
 
 
@@ -65,7 +68,7 @@ def parse_deck(text: str) -> Deck:
 
 def format_deck(deck: Deck, *, symbols: bool = False) -> str:
     """Render a deck as a space-separated line of card codes."""
-    return " ".join(card.label if symbols else card.code for card in deck)
+    return " ".join(card.short_label if symbols else card.code for card in deck)
 
 
 def joker_indices(deck: Deck) -> tuple[int, int]:
