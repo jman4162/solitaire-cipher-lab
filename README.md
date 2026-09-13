@@ -61,9 +61,9 @@ python -m http.server -d web    # then open http://localhost:8000
 | Terminal visualizer and CLI (`teach`, `worksheet`, `export`) | ✅ |
 | Cryptanalysis lab (key reuse, keystream bias) | ✅ |
 | Interactive web explainer | ✅ |
-| Test suite — known-answer, property, CLI, page data (352 tests) | ✅ |
-| Standalone SVG renderer for static figures | planned |
-| Live "encrypt your own message" in the browser | planned |
+| Standalone SVG renderer for static figures (`solitaire-lab render`) | ✅ |
+| Test suite — known-answer, property, CLI, architecture, page data (369 tests) | ✅ |
+| Live "encrypt your own message" in the browser | planned — see [docs/v0.2-live-engine.md](docs/v0.2-live-engine.md) |
 
 ## Command line
 
@@ -74,6 +74,7 @@ solitaire-lab worksheet -p "SECRET" -r 20        # printable hand-execution shee
 solitaire-lab analyze reuse                      # watch the key cancel out
 solitaire-lab analyze bias --samples 5000        # measure the keystream bias
 solitaire-lab export -p "SECRET" -m "HELLO" -o trace.json
+solitaire-lab render rounds --ordered-deck -r 2 -o figure.svg   # a blog-ready figure
 ```
 
 `worksheet` is the one to use with a real deck. It prints the deck state after
