@@ -2,53 +2,61 @@
    No framework and no build step: this page should still work in five years. */
 
 :root {
-  --bg: #fbfaf7;
-  --surface: #ffffff;
-  --surface-2: #f2efe9;
-  --ink: #1b1a17;
-  --ink-dim: #5d5a52;
-  --ink-faint: #8b8579;
-  --rule: #e2ddd2;
-  --accent: #8a3324;
-  --accent-soft: #f5e6e2;
-  --red: #b3261e;
-  --black: #26231d;
+  /* Grounded in the subject's materials: card-table baize, card stock, the
+     true red and black of pips, and the brass of a gilt card edge. */
+  --felt: #14402f;
+  --felt-deep: #0d2a1f;
+  --bg: #f2f2ee;
+  --surface: #fffefb;
+  --surface-2: #e8e9e3;
+  --ink: #16191a;
+  --ink-dim: #53595a;
+  --ink-faint: #838a89;
+  --rule: #d8dad2;
+  --accent: #1d6146;
+  --accent-soft: #e0ebe4;
+  --red: #a51f14;
+  --black: #1e2120;
   --joker: #6b4c9a;
   --joker-soft: #ece5f6;
-  --hl: #d97706;
-  --hl-soft: #fdf0d9;
-  --good: #2f6b3f;
-  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
-  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --brass: #8a6a1f;
+  --brass-soft: #f2ead3;
+  --good: #1d6146;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: "Fraunces", "Iowan Old Style", Palatino, Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #16150f;
-    --surface: #1f1e17;
-    --surface-2: #292720;
-    --ink: #ece7da;
-    --ink-dim: #a9a393;
-    --ink-faint: #7b7567;
-    --rule: #363328;
-    --accent: #e08a72;
-    --accent-soft: #33241f;
+    --felt: #0f2a20;
+    --felt-deep: #081710;
+    --bg: #101413;
+    --surface: #181e1c;
+    --surface-2: #222927;
+    --ink: #e6eae7;
+    --ink-dim: #a2aca8;
+    --ink-faint: #74807b;
+    --rule: #2c3532;
+    --accent: #6fc59a;
+    --accent-soft: #17302582;
     --red: #e8776b;
-    --black: #d9d3c4;
+    --black: #d4dad6;
     --joker: #b79ae0;
     --joker-soft: #2c2438;
-    --hl: #f0b055;
-    --hl-soft: #3a2d17;
-    --good: #7fc08f;
+    --brass: #d8b458;
+    --brass-soft: #332c16;
+    --good: #6fc59a;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #16150f; --surface: #1f1e17; --surface-2: #292720;
-  --ink: #ece7da; --ink-dim: #a9a393; --ink-faint: #7b7567; --rule: #363328;
-  --accent: #e08a72; --accent-soft: #33241f; --red: #e8776b; --black: #d9d3c4;
-  --joker: #b79ae0; --joker-soft: #2c2438; --hl: #f0b055; --hl-soft: #3a2d17; --good: #7fc08f;
+  --felt: #0f2a20; --felt-deep: #081710;
+  --bg: #101413; --surface: #181e1c; --surface-2: #222927;
+  --ink: #e6eae7; --ink-dim: #a2aca8; --ink-faint: #74807b; --rule: #2c3532;
+  --accent: #6fc59a; --accent-soft: #17302582; --red: #e8776b; --black: #d4dad6;
+  --joker: #b79ae0; --joker-soft: #2c2438; --brass: #d8b458; --brass-soft: #332c16;
+  --good: #6fc59a;
 }
 
 * { box-sizing: border-box; }
@@ -70,21 +78,24 @@ body {
 .wide { max-width: 1000px; margin: 0 auto; padding-inline: 20px; }
 
 header.hero {
-  border-bottom: 1px solid var(--rule);
-  background: var(--surface);
-  padding-block: 3.5rem 2.5rem;
+  background: var(--felt);
+  color: #f4f7f4;
+  padding-block: 3.5rem 2.8rem;
   margin-bottom: 2.5rem;
+  border-bottom: 3px solid var(--brass);
 }
+.hero .sub, .hero .byline { color: #bdcfc4; }
+.hero .byline a, .hero .sub a { color: var(--brass); }
 .hero h1 {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: clamp(2rem, 6vw, 3.1rem);
   line-height: 1.1;
   margin: 0 0 .6rem;
   letter-spacing: -0.02em;
 }
-.hero .sub { color: var(--ink-dim); font-size: 1.1rem; margin: 0 0 1.5rem; max-width: 34em; }
-.hero .byline { color: var(--ink-faint); font-size: .9rem; margin: 0; }
-.hero .byline a { color: var(--accent); }
+.hero .sub { font-size: 1.1rem; margin: 0 0 1.5rem; max-width: 34em; }
+.hero .byline { font-size: .9rem; margin: 0; }
+
 
 .warn {
   border-left: 3px solid var(--accent);
@@ -98,11 +109,14 @@ header.hero {
 .warn strong { color: var(--accent); }
 
 h2 {
-  font-family: var(--serif);
-  font-size: clamp(1.4rem, 3.4vw, 1.9rem);
+  font-family: var(--display);
+  font-size: clamp(1.45rem, 3.4vw, 1.95rem);
+  font-weight: 600;
+  font-variation-settings: "SOFT" 0, "WONK" 1, "opsz" 32;
   margin: 3.5rem 0 .4rem;
   letter-spacing: -0.01em;
   line-height: 1.2;
+  text-wrap: balance;
 }
 h2 .num {
   display: block;
@@ -147,7 +161,7 @@ code { font-family: var(--mono); font-size: .88em; background: var(--surface-2);
 }
 .card.red { color: var(--red); }
 .card.joker { color: var(--joker); background: var(--joker-soft); border-color: var(--joker); font-weight: 700; }
-.card.hl { background: var(--hl-soft); border-color: var(--hl); transform: translateY(-3px); box-shadow: 0 2px 0 var(--hl); }
+.card.hl { background: var(--brass-soft); border-color: var(--brass); transform: translateY(-3px); box-shadow: 0 2px 0 var(--brass); }
 .deck.compact .card { min-width: 26px; font-size: 11px; padding: 2px 3px; }
 
 /* ---- player ---- */
@@ -203,13 +217,13 @@ button.primary:hover { opacity: .9; color: var(--bg); }
 
 /* ---- tables ---- */
 .scroll { overflow-x: auto; margin: 1.2rem 0; }
-table.layers { border-collapse: collapse; font-family: var(--mono); font-size: .85rem; }
+table.layers { border-collapse: collapse; font-family: var(--mono); font-size: .85rem; font-variant-numeric: tabular-nums; }
 table.layers th { text-align: right; padding-right: .9rem; color: var(--ink-faint); font-weight: 400; white-space: nowrap; font-size: .78rem; }
 table.layers td { text-align: center; padding: .18rem .32rem; min-width: 1.9em; }
 table.layers tr.sum td { border-top: 1px solid var(--rule); }
 table.layers .p { color: var(--ink); font-weight: 600; }
 table.layers .k { color: var(--good); font-weight: 600; }
-table.layers .c { color: var(--hl); font-weight: 700; }
+table.layers .c { color: var(--brass); font-weight: 700; }
 table.layers .v { color: var(--ink-faint); font-size: .78rem; }
 
 .stat-row { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.4rem 0; }
@@ -217,8 +231,8 @@ table.layers .v { color: var(--ink-faint); font-size: .78rem; }
   flex: 1 1 160px; background: var(--surface); border: 1px solid var(--rule);
   border-radius: 8px; padding: .9rem 1rem;
 }
-.stat .n { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
-.stat .n.warnish { color: var(--hl); }
+.stat .n { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat .n.warnish { color: var(--brass); }
 .stat .l { font-size: .78rem; color: var(--ink-faint); margin-top: .25rem; }
 
 .bars { margin: 1.2rem 0; }
@@ -227,7 +241,7 @@ table.layers .v { color: var(--ink-faint); font-size: .78rem; }
 .bar-track { flex: 1 1 auto; height: 20px; background: var(--surface-2); border-radius: 4px; overflow: hidden; border: 1px solid var(--rule); }
 .bar-fill { display: block; height: 100%; border-radius: 3px 0 0 3px; }
 .bar-fill.ideal { background: var(--ink-faint); }
-.bar-fill.actual { background: var(--hl); }
+.bar-fill.actual { background: var(--brass); }
 .bar-row .val { flex: 0 0 4.5em; font-family: var(--mono); font-size: .8rem; }
 
 pre.block {
@@ -236,7 +250,7 @@ pre.block {
   font-family: var(--mono); font-size: .84rem; line-height: 1.6; margin: 1.1rem 0;
 }
 pre.block .k { color: var(--good); }
-pre.block .c { color: var(--hl); }
+pre.block .c { color: var(--brass); }
 pre.block .eq { color: var(--accent); font-weight: 700; }
 
 footer { border-top: 1px solid var(--rule); margin-top: 4rem; padding-top: 1.5rem; color: var(--ink-faint); font-size: .88rem; }
@@ -248,3 +262,9 @@ footer { border-top: 1px solid var(--rule); margin-top: 4rem; padding-top: 1.5re
   .card { min-width: 26px; font-size: 10.5px; }
   .bar-row .lab { flex-basis: 100%; text-align: left; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; border-radius: 3px; }
