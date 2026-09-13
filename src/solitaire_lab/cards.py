@@ -139,6 +139,15 @@ class Card:
         return f"{rank}{self.suit.letter}"
 
     @property
+    def short_label(self) -> str:
+        """A space-free display label, safe in space-separated output."""
+        if self.joker is not None:
+            return f"J{self.joker.value}"
+        assert self.rank is not None and self.suit is not None
+        rank = _RANK_LETTERS.get(self.rank, str(self.rank))
+        return f"{rank}{self.suit.symbol}"
+
+    @property
     def label(self) -> str:
         """A display label using suit symbols, e.g. ``A♣`` or ``JOKER A``."""
         if self.joker is not None:

@@ -23,10 +23,10 @@ drift out of step with the code that produced it.
 from solitaire_lab import ORDERED_DECK, encrypt, replay
 
 result = encrypt("DO NOT USE PC", ORDERED_DECK, trace=True)
-result.text            # ciphertext
-result.keystream       # the card values behind it
-result.final_deck      # where the deck ended up
-result.trace.events    # every state transition, replayable
+result.text  # ciphertext
+result.keystream  # the card values behind it
+result.final_deck  # where the deck ended up
+result.trace.events  # every state transition, replayable
 
 # A trace is an executable proof of what the engine did:
 replay(result.trace.initial_deck, result.trace.events) == result.final_deck

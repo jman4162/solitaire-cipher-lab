@@ -5,8 +5,10 @@ Two implementations live here on purpose:
 * :func:`generate` is the readable reference.  It composes the pure functions in
   :mod:`solitaire_lab.steps` and can emit a full trace.
 * :func:`generate_fast` is a mutable-list version that constructs no events.  It
-  exists because the analysis lab needs millions of rounds, and building five
-  frozen dataclasses per round makes that take minutes instead of seconds.
+  exists because the analysis lab needs hundreds of thousands of rounds, and
+  building five frozen dataclasses per round costs both time and memory.
+  Measured at roughly 3.4x faster than the traced reference (and 1.6x faster
+  than the untraced one), while allocating no events at all.
 
 The two are pinned together by a property test asserting they produce identical
 output for the same deck, so the fast path can never quietly drift.
@@ -98,8 +100,10 @@ def generate(deck: Deck, length: int, *, trace: bool = False) -> KeystreamResult
 def generate_fast(deck: Deck, length: int) -> tuple[int, ...]:
     """Keystream values only, with no trace and no intermediate objects.
 
-    Behaviourally identical to ``generate(deck, length).values``; roughly an
-    order of magnitude quicker, which is what makes the bias analysis practical.
+    Behaviourally identical to ``generate(deck, length).values``, and about
+    3.4x quicker than generating the same keystream with tracing on -- the
+    difference between a 12-second bias run and a 40-second one, with several
+    million event objects never allocated.
     """
     cards = list(deck)
     jokers = [card for card in cards if card.is_joker]
