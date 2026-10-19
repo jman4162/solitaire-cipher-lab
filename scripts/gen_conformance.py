@@ -62,7 +62,15 @@ def edge_decks() -> list[tuple[str, list]]:
                 slots[i] = next(it)
         return validate_deck(slots)
 
+    # A deck whose count cut lands on a joker-bottomed deck, making the cut an
+    # identity. Found by scanning shuffles: it is the only way to exercise that
+    # branch, and no hand-placed starting deck reaches it, because the joker
+    # moves and triple cut run first. Without this the committed smoke set
+    # cannot catch a wrong `identity` flag -- which mutation testing proved.
+    identity_cut = random_deck(random.Random(310))
+
     return [
+        ("identity count cut (joker on the bottom at cut time)", identity_cut),
         ("joker A on the bottom", place(53, 20)),
         ("joker B on the bottom", place(20, 53)),
         ("joker B second from bottom", place(20, 52)),

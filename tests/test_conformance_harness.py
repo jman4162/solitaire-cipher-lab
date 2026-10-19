@@ -54,6 +54,26 @@ def test_smoke_covers_the_joker_edge_decks(smoke):
         assert case in names, f"edge decks do not cover: {case}"
 
 
+def test_smoke_covers_the_awkward_metadata_cases(smoke):
+    """The committed set must exercise every branch a mutation could hide in.
+
+    The full vector set is generated in CI and is not always present -- a fresh
+    checkout has only smoke.json. If a branch is missing here, a wrong engine
+    passes locally and is caught only by CI, if at all. Mutation testing found
+    exactly that hole: no deck in the smoke set produced an identity count cut,
+    so flipping that flag in engine.js went unnoticed offline.
+    """
+    metas = [e["meta"] for case in smoke["cases"] for e in case.get("trace", {}).get("events", [])]
+    required = {
+        "a joker wrapping past the bottom": lambda m: m.get("wrapped"),
+        "an identity count cut": lambda m: m.get("identity"),
+        "a discarded joker output round": lambda m: m.get("is_joker"),
+        "a passphrase-letter count cut": lambda m: m.get("letter"),
+    }
+    missing = [name for name, probe in required.items() if not any(probe(m) for m in metas)]
+    assert not missing, f"smoke.json does not cover: {', '.join(missing)}"
+
+
 def test_smoke_cases_carry_full_traces(smoke):
     traced = [c for c in smoke["cases"] if "trace" in c]
     assert traced
