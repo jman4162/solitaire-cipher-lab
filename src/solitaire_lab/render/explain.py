@@ -36,7 +36,7 @@ def explain(event: TraceEvent) -> str:
         if meta["wrapped"]:
             return (
                 f"Joker {joker} moves down {positions}. It ran off the bottom, so it wraps round to "
-                f"just below the top card — not to the top itself — and ends at position "
+                f"just below the top card, skipping the top itself, and ends at position "
                 f"{meta['to_index'] + 1}."
             )
         return (
@@ -68,8 +68,8 @@ def explain(event: TraceEvent) -> str:
         if meta["identity"]:
             return (
                 f"The bottom card is {meta['bottom_card']}, a joker, worth 53. Cutting 53 of the "
-                f"54 cards to just above the bottom card puts every one of them straight back "
-                f"— the deck is unchanged."
+                f"54 cards to just above the bottom card puts every one of them straight back, "
+                f"so the deck is unchanged."
             )
         return (
             f"The bottom card is {meta['bottom_card']}, worth {count}. Move {count} card(s) "
@@ -80,7 +80,7 @@ def explain(event: TraceEvent) -> str:
         top, count, card = meta["top_card"], meta["count"], meta["output_card"]
         if meta["is_joker"]:
             return (
-                f"The top card is {top}, worth {count}. Counting {count} down lands on {card} — a joker. "
+                f"The top card is {top}, worth {count}. Counting {count} down lands on {card}, a joker. "
                 f"Jokers produce no output, so this round is discarded and we run the whole thing again."
             )
         return (

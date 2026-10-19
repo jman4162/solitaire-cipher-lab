@@ -19,7 +19,7 @@ function currentDeck() {
   const mode = document.querySelector('input[name="keymode"]:checked').value;
   if (mode === "passphrase") {
     const phrase = $("live-passphrase").value;
-    if (!E.normalize(phrase)) throw new Error("Enter a passphrase — letters only, everything else is ignored.");
+    if (!E.normalize(phrase)) throw new Error("Enter a passphrase. Letters only; everything else is ignored.");
     state.deckSource = `passphrase "${E.normalize(phrase)}"`;
     return E.passphraseDeck(phrase, { trace: false }).deck;
   }
@@ -86,7 +86,7 @@ function run() {
     return fail(err.message);
   }
   const message = $("live-message").value;
-  if (!E.normalize(message)) return fail("Enter a message — letters only, everything else is ignored.");
+  if (!E.normalize(message)) return fail("Enter a message. Letters only; everything else is ignored.");
 
   state.deck = deck;
   showDeck(deck);
@@ -154,7 +154,7 @@ function runReuse() {
   $("live-reuse-table").replaceChildren(table);
   const cancelled = chr(cipherDiff) === chr(plainDiff);
   $("live-reuse-verdict").textContent = cancelled
-    ? "The last two rows are identical. Subtracting the ciphertexts cancelled the key exactly — an attacker who never saw your deck now knows the difference between your two messages."
+    ? "The last two rows are identical. Subtracting the ciphertexts cancelled the key exactly. An attacker who never saw your deck now knows the difference between your two messages."
     : "Something is wrong: the rows should match.";
   $("live-reuse-out").hidden = false;
 }

@@ -76,7 +76,7 @@ def test_player_js_knows_nothing_about_the_cipher():
     for forbidden in [
         "SUIT_OFFSET",
         "cardValue",
-        "valueLetter",
+        "valueToLetter",
         "function explain",  # values and wording
         "tripleCut",
         "countCut",

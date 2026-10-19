@@ -39,7 +39,7 @@ export function explain(event) {
     if (m.wrapped) {
       return (
         `Joker ${m.joker} moves down ${positions}. It ran off the bottom, so it wraps round to ` +
-        `just below the top card — not to the top itself — and ends at position ` +
+        `just below the top card, skipping the top itself, and ends at position ` +
         `${m.to_index + 1}.`
       );
     }
@@ -75,8 +75,8 @@ export function explain(event) {
     if (m.identity) {
       return (
         `The bottom card is ${m.bottom_card}, a joker, worth 53. Cutting 53 of the ` +
-        `54 cards to just above the bottom card puts every one of them straight back ` +
-        `— the deck is unchanged.`
+        `54 cards to just above the bottom card puts every one of them straight back, ` +
+        `so the deck is unchanged.`
       );
     }
     return (
@@ -91,7 +91,7 @@ export function explain(event) {
     const card = m.output_card;
     if (m.is_joker) {
       return (
-        `The top card is ${top}, worth ${count}. Counting ${count} down lands on ${card} — a joker. ` +
+        `The top card is ${top}, worth ${count}. Counting ${count} down lands on ${card}, a joker. ` +
         `Jokers produce no output, so this round is discarded and we run the whole thing again.`
       );
     }

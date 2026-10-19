@@ -1,9 +1,16 @@
 # Solitaire Cipher Lab
 
-Teach and visualize the **Solitaire (Pontifex)** cipher — Bruce Schneier's 1999
-hand cipher, designed to be executed with an ordinary deck of 54 playing cards.
+[![CI](https://github.com/jman4162/solitaire-cipher-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/jman4162/solitaire-cipher-lab/actions/workflows/ci.yml)
+[![Deploy explainer](https://github.com/jman4162/solitaire-cipher-lab/actions/workflows/pages.yml/badge.svg)](https://github.com/jman4162/solitaire-cipher-lab/actions/workflows/pages.yml)
+[![Python 3.10-3.13](https://img.shields.io/badge/python-3.10--3.13-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Live explainer](https://img.shields.io/badge/explainer-jman4162.github.io-blue)](https://jman4162.github.io/solitaire-cipher-lab/)
 
-> ⚠️ **For education and experimentation, not modern cryptographic security.**
+Teach and visualize the **Solitaire (Pontifex)** cipher, Bruce Schneier's 1999
+hand cipher designed to be executed with an ordinary deck of 54 playing cards.
+**Try it in the browser:** <https://jman4162.github.io/solitaire-cipher-lab/>
+
+> ⚠️ **For education and experimentation only.**
 > Solitaire has known statistical biases and must not be used to protect real
 > information.
 
@@ -11,7 +18,7 @@ hand cipher, designed to be executed with an ordinary deck of 54 playing cards.
 
 Most cipher implementations hand you `encrypt()` and `decrypt()` and keep the
 interesting part hidden. Solitaire deserves better treatment, because its
-internal state *is* a deck of cards — something a learner can hold, shuffle and
+internal state *is* a deck of cards, which a learner can hold, shuffle and
 watch evolve. A stream cipher stops being a black box.
 
 So this package treats the **execution trace as its primary product**. Every
@@ -38,13 +45,13 @@ first.
 
 ## The interactive explainer
 
-The headline output is a single page — prose interleaved with live widgets —
+The headline output is a single page of prose interleaved with live widgets
 that walks through the cipher and ends by demonstrating two of its weaknesses.
 It lives in [`web/`](web/) and deploys to GitHub Pages.
 
 Sections 1-3 replay trace files recorded by the Python engine, so they cannot
 show anything the implementation does not do. Section 4 runs the cipher live in
-the browser, which needs a second implementation — see below for how that is
+the browser, which needs a second implementation; see below for how that is
 kept honest. `player.js` still contains no cipher code at all; a test enforces
 it, and another asserts the committed traces match a fresh build.
 
@@ -56,7 +63,7 @@ python -m http.server -d web    # then open http://localhost:8000
 ## The JavaScript engine, and why it is allowed to exist
 
 Letting readers encrypt their own messages means shipping a second
-implementation of Solitaire — precisely the drift this package was built to
+implementation of Solitaire, which is the drift this package was built to
 distrust. `web/engine.js` is tolerated because it is not checked against
 ciphertexts. It is checked against **traces**:
 
@@ -69,10 +76,10 @@ Every event, every `affected` index and every metadata key must match what
 Python recorded, across 300 random decks, 100 passphrase keyings, 100
 encryptions, the published vectors and 13 decks that put the jokers exactly
 where implementations go wrong. A joker landing one position off fails the
-build — and so does a single wrong metadata flag on an otherwise correct
+build, and so does a single wrong metadata flag on an otherwise correct
 keystream, which is the point of comparing traces rather than outputs.
-`tests/test_conformance_harness.py` proves the net has no holes by mutating the
-engine four ways and asserting the suite goes red each time.
+`tests/test_conformance_harness.py` tests the net itself by mutating the engine
+four ways and asserting the suite goes red each time.
 
 The full vector set (~24 MB) is generated in CI, not committed;
 `tests/conformance/smoke.json` holds 28 cases so `node --test` runs offline.
@@ -93,7 +100,7 @@ single character differs.
 | Cryptanalysis lab (key reuse, keystream bias) | ✅ |
 | Interactive web explainer | ✅ |
 | Standalone SVG renderer for static figures (`solitaire-lab render`) | ✅ |
-| Test suite — known-answer, property, CLI, architecture, page data (392 tests) | ✅ |
+| Test suite: known-answer, property, CLI, architecture, page data (392 tests) | ✅ |
 | Live "encrypt your own message" in the browser | ✅ |
 | JS engine conformance against Python traces (517 cases) | ✅ |
 
@@ -116,7 +123,7 @@ find the exact round where it happened.
 ## What the analysis shows
 
 Solitaire is presented here as a route into *why* modern stream ciphers are
-built as they are, not as a curiosity that happens to work.
+built as they are.
 
 - **Key reuse.** `C1 - C2 = (P1 + K) - (P2 + K) = P1 - P2`. The demonstration
   runs two real messages through one deck and shows the keystream cancelling.
@@ -129,7 +136,7 @@ built as they are, not as a curiosity that happens to work.
 
 ## Verification
 
-The correctness story is **known-answer tests**, not round trips — a broken
+Correctness rests on **known-answer tests**. A round trip is not enough: a broken
 implementation decrypts its own incorrectly-generated ciphertext perfectly well.
 The engine reproduces the published vectors exactly:
 
@@ -143,7 +150,7 @@ Round trips are deliberately *not* the correctness story, and the joker-skip
 round, both joker wrap cases and the joker-on-bottom count-cut identity are each
 tested directly.
 
-The unkeyed keystream is `4 49 10 (53) 24 8 51 44 6 4 33 20 39 19 34 42` — the
+The unkeyed keystream is `4 49 10 (53) 24 8 51 44 6 4 33 20 39 19 34 42`. The
 parenthesised 53 is a round that lands on a joker and produces no output. That
 skip is the most commonly mis-implemented part of Solitaire, and it is invisible
 to any encrypt-then-decrypt test, so it is tested directly.
@@ -156,7 +163,11 @@ Vectors are pinned in [`tests/vectors/published.json`](tests/vectors/published.j
 uv venv && uv pip install -e ".[dev]"
 pytest
 ruff check . && ruff format --check .
+node --test tests/conformance/*.test.mjs
+scripts/slopcheck.sh           # prose lint (slopscore + slopless), advisory
 ```
+
+`pre-commit install` adds ruff and slopscore-lint as commit hooks.
 
 ## License
 

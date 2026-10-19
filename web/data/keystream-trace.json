@@ -2829,7 +2829,7 @@
   },
   {
    "headline": "Move joker B down two",
-   "text": "Joker B moves down 2 positions. It ran off the bottom, so it wraps round to just below the top card \u2014 not to the top itself \u2014 and ends at position 2."
+   "text": "Joker B moves down 2 positions. It ran off the bottom, so it wraps round to just below the top card, skipping the top itself, and ends at position 2."
   },
   {
    "headline": "Triple cut",
@@ -2901,7 +2901,7 @@
   },
   {
    "headline": "Read the output card",
-   "text": "The top card is 3C, worth 3. Counting 3 down lands on JB \u2014 a joker. Jokers produce no output, so this round is discarded and we run the whole thing again."
+   "text": "The top card is 3C, worth 3. Counting 3 down lands on JB, a joker. Jokers produce no output, so this round is discarded and we run the whole thing again."
   },
   {
    "headline": "Move joker A down one",
