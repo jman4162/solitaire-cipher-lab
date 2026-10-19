@@ -1,0 +1,16 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.1
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+
+  # Prose in Markdown, docstrings and the explainer page. slopless (the other
+  # half of scripts/slopcheck.sh) needs Node, so it runs there and in CI.
+  - repo: https://github.com/jman4162/slopscore
+    rev: v0.14.3
+    hooks:
+      - id: slopscore-lint
+        args: ["--profile", "technical", "--fail-on", "high"]
+        files: '(\.(md|py)|^web/index\.html)$'
+        exclude: '^tests/'

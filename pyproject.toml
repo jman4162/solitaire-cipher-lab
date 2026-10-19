@@ -34,6 +34,9 @@ packages = ["src/solitaire_lab"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 
+[tool.slopscore]
+profile = "technical"
+
 [tool.ruff]
 line-length = 110
 src = ["src", "tests"]
