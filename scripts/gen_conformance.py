@@ -77,7 +77,7 @@ def edge_decks() -> list[tuple[str, list]]:
         ("both jokers at the bottom", place(52, 53)),
         ("joker A on top", place(0, 30)),
         ("joker B on top", place(30, 0)),
-        ("jokers at both ends", place(0, 53)),
+        ("joker B top, joker A bottom", place(53, 0)),
         ("jokers adjacent, mid-deck", place(26, 27)),
         ("jokers adjacent, reversed", place(27, 26)),
         ("joker A top, joker B bottom", place(0, 53)),

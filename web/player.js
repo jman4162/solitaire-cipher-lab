@@ -1,13 +1,13 @@
 /* Solitaire Cipher Lab — trace player.
  *
  * This file contains NO cipher logic. It cannot encrypt anything, and it does
- * not know how Solitaire works. It replays trace files recorded by the Python
- * engine, which is what guarantees the page shows what the implementation
- * actually does rather than an idealised retelling of it.
+ * not know how Solitaire works. It replays traces: the ones the Python engine
+ * recorded at build time, and the ones web/engine.js makes for a reader's own
+ * key, which CI checks against Python trace for trace.
  *
- * It does not even phrase the steps: the explanations shown come from the
- * Python renderer at build time, so the page and the terminal say the same
- * thing about the same event. All this file knows is how to draw a card. */
+ * It does not even phrase the steps: explanations come from the Python
+ * renderer at build time, or from explain.js (tested to match it character for
+ * character) for live traces. All this file knows is how to draw a card. */
 
 const SUIT_SYMBOL = { C: "♣", D: "♦", H: "♥", S: "♠" };
 const RED_SUITS = new Set(["D", "H"]);
@@ -107,6 +107,8 @@ export class TracePlayer {
       this.go(Number(e.target.value));
     });
     this.root.addEventListener("keydown", (e) => {
+      // The slider handles its own arrow keys; stepping here as well would skip one.
+      if (e.target === this.els.progress) return;
       if (e.key === "ArrowRight") { this.stop(); this.go(this.index + 1); }
       if (e.key === "ArrowLeft") { this.stop(); this.go(this.index - 1); }
     });
@@ -114,7 +116,7 @@ export class TracePlayer {
   }
 
   go(index) {
-    this.index = Math.max(0, Math.min(this.events.length - 1, index));
+    this.index = Math.max(0, Math.min(this.events.length - 1, Math.trunc(index)));
     this.render();
     this.onChange(this);
   }
@@ -124,7 +126,7 @@ export class TracePlayer {
   }
 
   play() {
-    if (this.index >= this.events.length - 1) this.index = 0;
+    if (this.index >= this.events.length - 1) this.go(0);
     this.els.play.textContent = "Pause";
     this.timer = setInterval(() => {
       if (this.index >= this.events.length - 1) return this.stop();

@@ -61,13 +61,13 @@ distrust. `web/engine.js` is tolerated because it is not checked against
 ciphertexts. It is checked against **traces**:
 
 ```sh
-python scripts/gen_conformance.py            # 516 cases from the Python engine
+python scripts/gen_conformance.py            # 517 cases from the Python engine
 node --test tests/conformance/*.test.mjs     # every trace must deep-equal
 ```
 
 Every event, every `affected` index and every metadata key must match what
 Python recorded, across 300 random decks, 100 passphrase keyings, 100
-encryptions, the published vectors and 12 decks that put the jokers exactly
+encryptions, the published vectors and 13 decks that put the jokers exactly
 where implementations go wrong. A joker landing one position off fails the
 build — and so does a single wrong metadata flag on an otherwise correct
 keystream, which is the point of comparing traces rather than outputs.
@@ -75,7 +75,7 @@ keystream, which is the point of comparing traces rather than outputs.
 engine four ways and asserting the suite goes red each time.
 
 The full vector set (~24 MB) is generated in CI, not committed;
-`tests/conformance/smoke.json` holds 27 cases so `node --test` runs offline.
+`tests/conformance/smoke.json` holds 28 cases so `node --test` runs offline.
 
 Cipher knowledge is confined to `engine.js` by an architecture test. The one
 other duplication is wording: `web/explain.js` mirrors
@@ -93,9 +93,9 @@ single character differs.
 | Cryptanalysis lab (key reuse, keystream bias) | ✅ |
 | Interactive web explainer | ✅ |
 | Standalone SVG renderer for static figures (`solitaire-lab render`) | ✅ |
-| Test suite — known-answer, property, CLI, architecture, page data (381 tests) | ✅ |
+| Test suite — known-answer, property, CLI, architecture, page data (392 tests) | ✅ |
 | Live "encrypt your own message" in the browser | ✅ |
-| JS engine conformance against Python traces (516 cases) | ✅ |
+| JS engine conformance against Python traces (517 cases) | ✅ |
 
 ## Command line
 
@@ -121,8 +121,9 @@ built as they are, not as a curiosity that happens to work.
 - **Key reuse.** `C1 - C2 = (P1 + K) - (P2 + K) = P1 - P2`. The demonstration
   runs two real messages through one deck and shows the keystream cancelling.
 - **Keystream bias.** An ideal 26-letter stream repeats the previous letter
-  3.85% of the time. Measured over ~900,000 adjacent pairs, Solitaire repeats
-  4.45% of the time — a repeat roughly every 22.5 letters instead of every 26.
+  3.85% of the time. Measured over 373,500 adjacent pairs from 1,500 shuffled
+  decks, Solitaire repeats 4.46% of the time, a repeat roughly every 22.4
+  letters instead of every 26.
   The bias was identified by Paul Crowley in 1999 and analysed by Daniel Shiu
   in 2019.
 

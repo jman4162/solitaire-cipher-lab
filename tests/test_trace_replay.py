@@ -41,6 +41,45 @@ def test_replay_detects_a_tampered_event(trace):
         replay(trace.initial_deck, tuple(events))
 
 
+def test_replay_detects_a_forged_output(trace):
+    """The output step leaves the deck alone, so only the output check can catch this."""
+    events = list(trace.events)
+    index = next(i for i, e in enumerate(events) if e.output is not None)
+    bad = events[index]
+    forged = next(card for card in ORDERED_DECK if card != bad.output and not card.is_joker)
+    events[index] = type(bad)(
+        round=bad.round,
+        phase=bad.phase,
+        after=bad.after,
+        affected=bad.affected,
+        meta=dict(bad.meta, output_card=forged.code),
+        output=forged,
+    )
+    with pytest.raises(ValueError, match="diverged"):
+        replay(trace.initial_deck, tuple(events))
+
+
+def test_replay_detects_forged_affected_positions(trace):
+    events = list(trace.events)
+    bad = events[2]
+    events[2] = type(bad)(
+        round=bad.round,
+        phase=bad.phase,
+        after=bad.after,
+        affected=(9, 9),
+        meta=bad.meta,
+        output=bad.output,
+    )
+    with pytest.raises(ValueError, match="diverged"):
+        replay(trace.initial_deck, tuple(events))
+
+
+def test_replay_detects_stripped_output_events(trace):
+    events = tuple(e for e in trace.events if e.phase != "output")
+    with pytest.raises(ValueError, match="no output step"):
+        replay(trace.initial_deck, events)
+
+
 def test_json_round_trip_is_lossless(trace):
     restored = from_json(to_json(trace))
     assert restored.initial_deck == trace.initial_deck

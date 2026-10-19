@@ -99,6 +99,27 @@ def test_bad_deck_reports_an_error_not_a_traceback(capsys):
     assert "error:" in out
 
 
+def test_brackets_in_user_input_are_not_read_as_markup(capsys):
+    """Rich would parse "[/x]" as a closing tag and crash before printing the error."""
+    code, out = run(capsys, "encrypt", "-d", "[/x] AC", "HELLO")
+    assert code == 2
+    assert "error:" in out
+
+
+def test_reuse_shows_a_bracketed_passphrase_verbatim(capsys):
+    code, out = run(capsys, "analyze", "reuse", "--passphrase", "[red]KEY")
+    assert code == 0
+    assert "[red]KEY" in out
+
+
+@pytest.mark.parametrize("command", ["encrypt", "decrypt"])
+@pytest.mark.parametrize("flag", ["-p", "-d"])
+def test_an_empty_key_is_an_error_not_the_unkeyed_deck(capsys, command, flag):
+    code, out = run(capsys, command, flag, "", "HELLO")
+    assert code == 2
+    assert "error:" in out
+
+
 def test_key_options_are_mutually_exclusive():
     with pytest.raises(SystemExit):
         main(["encrypt", "-p", "KEY", "--ordered-deck", "HELLO"])

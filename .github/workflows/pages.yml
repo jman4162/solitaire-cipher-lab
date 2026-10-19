@@ -22,10 +22,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - run: python -m pip install -e ".[dev]"
       # Rebuild from the engine so a deployed page can never lag the code.
       - run: python scripts/build_web.py
       - run: pytest tests/test_web_data.py -q
+      # The page ships web/engine.js to readers. Deploy only an engine that
+      # still reproduces every Python trace.
+      - run: python scripts/gen_conformance.py
+      - run: node --test tests/conformance/*.test.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

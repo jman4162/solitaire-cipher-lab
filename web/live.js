@@ -114,6 +114,7 @@ function run() {
 function runReuse() {
   const second = $("live-second").value;
   if (!state.first) return;
+  $("live-error").hidden = true;
   if (!E.normalize(second)) return fail("Enter a second message to send under the same deck.");
 
   const p1 = state.first.plaintext;

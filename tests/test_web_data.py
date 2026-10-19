@@ -1,7 +1,7 @@
 """The web explainer's data files must match what the engine produces now.
 
-The page ships precomputed traces so the browser never needs a cipher
-implementation of its own. The risk that buys is staleness: the engine changes
+The page's worked examples ship as precomputed traces, so they never depend on
+the browser engine. The risk that buys is staleness: the engine changes
 and the page quietly keeps showing the old behaviour. This test closes that gap
 by rebuilding every file and comparing.
 

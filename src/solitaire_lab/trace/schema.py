@@ -100,17 +100,40 @@ def replay(initial_deck: Deck, events: tuple[TraceEvent, ...]) -> Deck:
     were taken must reproduce, event for event, the decks the trace recorded.  A
     trace is therefore an executable proof of what the engine did, and any
     renderer built on it is showing the real computation.
+
+    Every recorded field is checked, not only the deck: the output card, the
+    affected positions and the metadata a renderer draws from.  A round's
+    ordinary count cut must be followed by its output (or, while keying, by the
+    letter's count cut), so a trace with its outputs stripped does not replay.
     """
     deck = initial_deck
+    pending_output = None
     for event in events:
+        letter_cut = event.phase == Phase.COUNT_CUT and event.meta.get("from_letter")
+        if pending_output is not None and event.phase != Phase.OUTPUT and not letter_cut:
+            raise ValueError(f"replay diverged at round {pending_output}: the round has no output step")
         if event.phase == Phase.COUNT_CUT:
-            result = count_cut(deck, event.meta.get("count") if event.meta.get("from_letter") else None)
+            result = count_cut(deck, event.meta.get("count") if letter_cut else None)
         else:
             step = _REPLAY_STEPS.get(event.phase)
             if step is None:
                 raise ValueError(f"cannot replay unknown phase: {event.phase!r}")
             result = step(deck)
-        if result.deck != event.after:
+        recorded_meta = {key: event.meta.get(key) for key in result.metadata}
+        if (
+            result.deck != event.after
+            or tuple(result.affected) != tuple(event.affected)
+            or _plain(result.metadata) != _plain(recorded_meta)
+            or result.output != event.output
+        ):
             raise ValueError(f"replay diverged at round {event.round} phase {event.phase}")
+        pending_output = event.round if event.phase == Phase.COUNT_CUT and not letter_cut else None
         deck = result.deck
+    if pending_output is not None:
+        raise ValueError(f"replay diverged at round {pending_output}: the round has no output step")
     return deck
+
+
+def _plain(value: Any) -> Any:
+    """Normalise tuples to lists, as a JSON round trip would."""
+    return json.loads(json.dumps(value))

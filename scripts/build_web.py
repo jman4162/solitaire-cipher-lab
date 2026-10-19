@@ -1,8 +1,9 @@
 """Generate the data files the web explainer consumes.
 
-The web player implements no cipher logic: it replays what the engine here
-recorded.  That is the whole point -- the page cannot show something the
-implementation does not actually do.  Run this whenever the engine changes:
+The page's worked examples replay what the engine here recorded, so they
+cannot show something the implementation does not do.  (Section 4 runs
+web/engine.js on the reader's own key; that engine is checked against this one
+by the conformance suite.)  Run this whenever the engine changes:
 
     python scripts/build_web.py
 

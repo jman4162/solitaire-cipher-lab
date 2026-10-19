@@ -12,6 +12,8 @@ import json
 import sys
 from pathlib import Path
 
+from rich.markup import escape
+
 from .cards import value_to_letter
 from .cipher import decrypt, encrypt
 from .codec import group, normalize
@@ -40,9 +42,11 @@ def add_key_options(parser: argparse.ArgumentParser) -> None:
 
 
 def resolve_deck(args: argparse.Namespace) -> Deck:
-    if args.passphrase:
+    # ``is not None``: an empty -p "" or -d "" is a mistake to report, not a
+    # request for the unkeyed deck.
+    if args.passphrase is not None:
         return passphrase_deck(args.passphrase)[0]
-    if args.deck:
+    if args.deck is not None:
         return explicit_deck(args.deck)
     if getattr(args, "deck_file", None):
         return explicit_deck(args.deck_file.read_text())
@@ -52,7 +56,8 @@ def resolve_deck(args: argparse.Namespace) -> Deck:
 
 
 def warn_if_unkeyed(args: argparse.Namespace) -> None:
-    if not (args.passphrase or args.deck or getattr(args, "deck_file", None) or args.shuffle is not None):
+    keyed = (args.passphrase, args.deck, getattr(args, "deck_file", None), args.shuffle)
+    if all(key is None for key in keyed):
         console.print("[dim]Using the unkeyed deck in bridge order — this is a test fixture, not a key.[/]")
 
 
@@ -73,6 +78,7 @@ def cmd_encrypt(args: argparse.Namespace) -> int:
 
 
 def cmd_decrypt(args: argparse.Namespace) -> int:
+    warn_if_unkeyed(args)
     deck = resolve_deck(args)
     result = decrypt(args.message, deck)
     console.print(f"[bold]{result.grouped}[/]")
@@ -160,7 +166,7 @@ def cmd_worksheet(args: argparse.Namespace) -> int:
     text = "\n".join(lines)
     if args.output:
         args.output.write_text(text)
-        console.print(f"[green]wrote[/] {args.output}")
+        console.print(f"[green]wrote[/] {escape(str(args.output))}")
     else:
         print(text)
     return 0
@@ -179,7 +185,9 @@ def cmd_export(args: argparse.Namespace) -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(payload)
         size = len(payload) / 1024
-        console.print(f"[green]wrote[/] {args.output} ({size:.1f} KiB, {len(trace.events)} events)")
+        console.print(
+            f"[green]wrote[/] {escape(str(args.output))} ({size:.1f} KiB, {len(trace.events)} events)"
+        )
     else:
         print(payload)
     return 0
@@ -201,7 +209,7 @@ def cmd_render(args: argparse.Namespace) -> int:
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(svg)
-        console.print(f"[green]wrote[/] {args.output} ({len(svg) / 1024:.1f} KiB)")
+        console.print(f"[green]wrote[/] {escape(str(args.output))} ({len(svg) / 1024:.1f} KiB)")
     else:
         print(svg)
     return 0
@@ -211,15 +219,17 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     from .analysis import bias, reuse
 
     if args.experiment == "reuse":
-        report = reuse.demonstrate(args.first, args.second, passphrase=args.passphrase or "SHAREDKEY")
-        console.print(reuse.render(report))
+        report = reuse.demonstrate(
+            args.first, args.second, passphrase="SHAREDKEY" if args.passphrase is None else args.passphrase
+        )
+        console.print(reuse.render(report), markup=False)
     else:
         report = bias.measure(samples=args.samples, length=args.length, seed=args.seed)
-        console.print(bias.render(report))
+        console.print(bias.render(report), markup=False)
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(json.dumps(report, indent=2))
-            console.print(f"[green]wrote[/] {args.output}")
+            console.print(f"[green]wrote[/] {escape(str(args.output))}")
     return 0
 
 
@@ -303,7 +313,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return args.func(args)
     except ValueError as exc:
-        console.print(f"[red]error:[/] {exc}")
+        console.print(f"[red]error:[/] {escape(str(exc))}")
         return 2
 
 

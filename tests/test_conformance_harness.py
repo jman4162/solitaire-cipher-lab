@@ -50,8 +50,17 @@ def test_smoke_covers_the_joker_edge_decks(smoke):
     edges = [c for c in smoke["cases"] if c["name"].startswith("edge:")]
     assert len(edges) >= 12, f"only {len(edges)} edge decks"
     names = " ".join(c["name"] for c in edges)
-    for case in ["on the bottom", "second from bottom", "on top", "adjacent", "both ends"]:
+    for case in [
+        "on the bottom",
+        "second from bottom",
+        "on top",
+        "adjacent",
+        "joker A top, joker B bottom",
+        "joker B top, joker A bottom",
+    ]:
         assert case in names, f"edge decks do not cover: {case}"
+    decks = [tuple(c["deck"]) for c in edges]
+    assert len(set(decks)) == len(decks), "two edge cases use the same deck"
 
 
 def test_smoke_covers_the_awkward_metadata_cases(smoke):
