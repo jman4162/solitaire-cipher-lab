@@ -8,7 +8,7 @@ does so noticeably more often.  The bias was identified early (Paul Crowley,
 The point of measuring it here is not to declare Solitaire broken and stop.  It
 is that "looks random" and "is random" are different claims, and the gap between
 them is what cryptanalysis is *for*.  A cipher can be perfectly usable by hand,
-entirely deterministic, reversible, and still leak — and the leak shows up as a
+entirely deterministic, and still leak — and the leak shows up as a
 number a learner can compute themselves in a few seconds.
 """
 

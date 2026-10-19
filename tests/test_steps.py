@@ -36,6 +36,18 @@ class TestMoveJokers:
         assert result.deck.index(JA) == 1
         assert result.metadata["wrapped"] is True
 
+    def test_wrap_rule_makes_the_step_non_invertible(self):
+        """Crowley (1999): a joker on top and a joker on the bottom land in the same place.
+
+        Same card order apart from the joker, so two distinct decks step to one
+        deck. The explainer's section 6 cites this; the test keeps it true.
+        """
+        rest = [c for c in ORDERED_DECK if c != JA]
+        on_top = validate_deck([JA, *rest])
+        on_bottom = validate_deck([*rest, JA])
+        assert on_top != on_bottom
+        assert move_joker_a(on_top).deck == move_joker_a(on_bottom).deck
+
     def test_joker_b_at_bottom_ends_third_from_top(self):
         """Moving down two from the bottom is two single moves: bottom -> 1 -> 2."""
         deck = deck_with_jokers_at(20, 53)
