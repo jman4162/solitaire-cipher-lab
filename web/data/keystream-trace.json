@@ -2824,142 +2824,505 @@
  ],
  "explanations": [
   {
+   "focus": [
+    53
+   ],
    "headline": "Move joker A down one",
    "text": "Joker A moves down one position, from position 53 to 54."
   },
   {
+   "focus": [
+    1
+   ],
    "headline": "Move joker B down two",
    "text": "Joker B moves down 2 positions. It ran off the bottom, so it wraps round to just below the top card, skipping the top itself, and ends at position 2."
   },
   {
+   "focus": [
+    53
+   ],
    "headline": "Triple cut",
-   "text": "Everything outside the two jokers switches sides: the 1 card(s) above the first joker and the 0 card(s) below the second trade places. The 53 cards from one joker to the other stay exactly as they were."
+   "text": "Everything outside the two jokers switches sides: the 1 card above the first joker and the 0 cards below the second trade places. The 53 cards from one joker to the other stay exactly as they were."
   },
   {
+   "focus": [
+    52
+   ],
    "headline": "Count cut",
-   "text": "The bottom card is AC, worth 1. Move 1 card(s) from the top to just above it. The bottom card itself never moves."
+   "text": "The bottom card is AC, worth 1. Move 1 card from the top to just above it. The bottom card itself never moves."
   },
   {
+   "focus": [
+    0,
+    2
+   ],
    "headline": "Read the output card",
    "text": "The top card is 2C, worth 2. Counting 2 down lands on 4C. That card's value is this round's keystream number. The deck is not changed by this step."
   },
   {
+   "focus": [
+    52
+   ],
    "headline": "Move joker A down one",
    "text": "Joker A moves down one position, from position 52 to 53."
   },
   {
+   "focus": [
+    53
+   ],
    "headline": "Move joker B down two",
    "text": "Joker B moves down 2 positions, from position 52 to 54."
   },
   {
+   "focus": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53
+   ],
    "headline": "Triple cut",
-   "text": "Everything outside the two jokers switches sides: the 51 card(s) above the first joker and the 0 card(s) below the second trade places. The 3 cards from one joker to the other stay exactly as they were."
+   "text": "Everything outside the two jokers switches sides: the 51 cards above the first joker and the 0 cards below the second trade places. The 3 cards from one joker to the other stay exactly as they were."
   },
   {
+   "focus": [
+    0
+   ],
    "headline": "Count cut",
-   "text": "The bottom card is KS, worth 52. Move 52 card(s) from the top to just above it. The bottom card itself never moves."
+   "text": "The bottom card is KS, worth 52. Move 52 cards from the top to just above it. The bottom card itself never moves. That is the same as moving the 1 card above the bottom card, QS, to the top."
   },
   {
+   "focus": [
+    0,
+    51
+   ],
    "headline": "Read the output card",
    "text": "The top card is QS, worth 51. Counting 51 down lands on TS. That card's value is this round's keystream number. The deck is not changed by this step."
   },
   {
+   "focus": [
+    2
+   ],
    "headline": "Move joker A down one",
    "text": "Joker A moves down one position, from position 2 to 3."
   },
   {
+   "focus": [
+    5
+   ],
    "headline": "Move joker B down two",
    "text": "Joker B moves down 2 positions, from position 4 to 6."
   },
   {
+   "focus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    52,
+    53
+   ],
    "headline": "Triple cut",
-   "text": "Everything outside the two jokers switches sides: the 2 card(s) above the first joker and the 48 card(s) below the second trade places. The 4 cards from one joker to the other stay exactly as they were."
+   "text": "Everything outside the two jokers switches sides: the 2 cards above the first joker and the 48 cards below the second trade places. The 4 cards from one joker to the other stay exactly as they were."
   },
   {
+   "focus": [
+    52
+   ],
    "headline": "Count cut",
-   "text": "The bottom card is AC, worth 1. Move 1 card(s) from the top to just above it. The bottom card itself never moves."
+   "text": "The bottom card is AC, worth 1. Move 1 card from the top to just above it. The bottom card itself never moves."
   },
   {
+   "focus": [
+    0,
+    5
+   ],
    "headline": "Read the output card",
    "text": "The top card is 5C, worth 5. Counting 5 down lands on TC. That card's value is this round's keystream number. The deck is not changed by this step."
   },
   {
+   "focus": [
+    48
+   ],
    "headline": "Move joker A down one",
    "text": "Joker A moves down one position, from position 48 to 49."
   },
   {
+   "focus": [
+    52
+   ],
    "headline": "Move joker B down two",
    "text": "Joker B moves down 2 positions, from position 51 to 53."
   },
   {
+   "focus": [
+    0,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53
+   ],
    "headline": "Triple cut",
-   "text": "Everything outside the two jokers switches sides: the 48 card(s) above the first joker and the 1 card(s) below the second trade places. The 5 cards from one joker to the other stay exactly as they were."
+   "text": "Everything outside the two jokers switches sides: the 48 cards above the first joker and the 1 card below the second trade places. The 5 cards from one joker to the other stay exactly as they were."
   },
   {
+   "focus": [
+    51,
+    52
+   ],
    "headline": "Count cut",
-   "text": "The bottom card is 2C, worth 2. Move 2 card(s) from the top to just above it. The bottom card itself never moves."
+   "text": "The bottom card is 2C, worth 2. Move 2 cards from the top to just above it. The bottom card itself never moves."
   },
   {
+   "focus": [
+    0,
+    3
+   ],
    "headline": "Read the output card",
    "text": "The top card is 3C, worth 3. Counting 3 down lands on JB, a joker. Jokers produce no output, so this round is discarded and we run the whole thing again."
   },
   {
+   "focus": [
+    53
+   ],
    "headline": "Move joker A down one",
    "text": "Joker A moves down one position, from position 53 to 54."
   },
   {
+   "focus": [
+    5
+   ],
    "headline": "Move joker B down two",
    "text": "Joker B moves down 2 positions, from position 4 to 6."
   },
   {
+   "focus": [
+    49,
+    50,
+    51,
+    52,
+    53
+   ],
    "headline": "Triple cut",
-   "text": "Everything outside the two jokers switches sides: the 5 card(s) above the first joker and the 0 card(s) below the second trade places. The 49 cards from one joker to the other stay exactly as they were."
+   "text": "Everything outside the two jokers switches sides: the 5 cards above the first joker and the 0 cards below the second trade places. The 49 cards from one joker to the other stay exactly as they were."
   },
   {
+   "focus": [
+    47,
+    48,
+    49,
+    50,
+    51,
+    52
+   ],
    "headline": "Count cut",
-   "text": "The bottom card is 6C, worth 6. Move 6 card(s) from the top to just above it. The bottom card itself never moves."
+   "text": "The bottom card is 6C, worth 6. Move 6 cards from the top to just above it. The bottom card itself never moves."
   },
   {
+   "focus": [
+    0,
+    12
+   ],
    "headline": "Read the output card",
    "text": "The top card is QC, worth 12. Counting 12 down lands on JD. That card's value is this round's keystream number. The deck is not changed by this step."
   },
   {
+   "focus": [
+    43
+   ],
    "headline": "Move joker A down one",
    "text": "Joker A moves down one position, from position 43 to 44."
   },
   {
+   "focus": [
+    49
+   ],
    "headline": "Move joker B down two",
    "text": "Joker B moves down 2 positions, from position 48 to 50."
   },
   {
+   "focus": [
+    0,
+    1,
+    2,
+    3,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53
+   ],
    "headline": "Triple cut",
-   "text": "Everything outside the two jokers switches sides: the 43 card(s) above the first joker and the 4 card(s) below the second trade places. The 7 cards from one joker to the other stay exactly as they were."
+   "text": "Everything outside the two jokers switches sides: the 43 cards above the first joker and the 4 cards below the second trade places. The 7 cards from one joker to the other stay exactly as they were."
   },
   {
+   "focus": [
+    50,
+    51,
+    52
+   ],
    "headline": "Count cut",
-   "text": "The bottom card is 3C, worth 3. Move 3 card(s) from the top to just above it. The bottom card itself never moves."
+   "text": "The bottom card is 3C, worth 3. Move 3 cards from the top to just above it. The bottom card itself never moves."
   },
   {
+   "focus": [
+    0,
+    6
+   ],
    "headline": "Read the output card",
    "text": "The top card is 6C, worth 6. Counting 6 down lands on 8C. That card's value is this round's keystream number. The deck is not changed by this step."
   },
   {
+   "focus": [
+    2
+   ],
    "headline": "Move joker A down one",
    "text": "Joker A moves down one position, from position 2 to 3."
   },
   {
+   "focus": [
+    9
+   ],
    "headline": "Move joker B down two",
    "text": "Joker B moves down 2 positions, from position 8 to 10."
   },
   {
+   "focus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    52,
+    53
+   ],
    "headline": "Triple cut",
-   "text": "Everything outside the two jokers switches sides: the 2 card(s) above the first joker and the 44 card(s) below the second trade places. The 8 cards from one joker to the other stay exactly as they were."
+   "text": "Everything outside the two jokers switches sides: the 2 cards above the first joker and the 44 cards below the second trade places. The 8 cards from one joker to the other stay exactly as they were."
   },
   {
+   "focus": [
+    0,
+    1
+   ],
    "headline": "Count cut",
-   "text": "The bottom card is QS, worth 51. Move 51 card(s) from the top to just above it. The bottom card itself never moves."
+   "text": "The bottom card is QS, worth 51. Move 51 cards from the top to just above it. The bottom card itself never moves. That is the same as moving the 2 cards above the bottom card to the top."
   },
   {
+   "focus": [
+    0,
+    53
+   ],
    "headline": "Read the output card",
    "text": "The top card is JB, worth 53. Counting 53 down lands on QS. That card's value is this round's keystream number. The deck is not changed by this step."
   }

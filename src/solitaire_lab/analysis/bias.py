@@ -73,6 +73,11 @@ def measure(*, samples: int = 2000, length: int = 200, seed: int = 0) -> dict[st
         "ci_level": 0.95,
         "ci_low": ci_low,
         "ci_high": ci_high,
+        # The ideal rate is a fixed 1/26, so the excess interval is the rate
+        # interval shifted by it: how many points more often Solitaire repeats.
+        "excess": observed - IDEAL_REPEAT_RATE,
+        "excess_low": ci_low - IDEAL_REPEAT_RATE,
+        "excess_high": ci_high - IDEAL_REPEAT_RATE,
         "bootstrap_resamples": BOOTSTRAP_RESAMPLES,
         "letter_frequencies": {k: v / total_letters for k, v in letter_counts.items()}
         if total_letters
@@ -104,6 +109,8 @@ def render(report: dict[str, Any]) -> str:
         f"  an ideal 26-letter stream repeats   {ideal:.4%}",
         f"  Solitaire's keystream repeats       {observed:.4%}",
         f"  95% interval (bootstrap over decks) {report['ci_low']:.4%} to {report['ci_high']:.4%}",
+        f"  excess over 1/26                    {report['excess'] * 100:+.3f} points "
+        f"({report['excess_low'] * 100:+.3f} to {report['excess_high'] * 100:+.3f})",
         f"  excess                              {report['excess_ratio']:.2f}x",
         "",
         "A stream cipher is supposed to be computationally indistinguishable",

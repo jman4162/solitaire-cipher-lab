@@ -21,6 +21,28 @@ const HEADLINES = {
   output: "Read the output card",
 };
 
+const cards = (n) => (n === 1 ? "1 card" : `${n} cards`);
+
+/** For a count cut that moves most of the deck, the same move told from the
+ * other side: the 53 - count cards left above the bottom card end up on top. */
+function shortSide(event) {
+  const count = event.meta.count;
+  const rest = 53 - count;
+  if (!(rest > 0 && rest < count)) return "";
+  const named = rest === 1 ? `, ${event.after[0]},` : "";
+  return ` That is the same as moving the ${cards(rest)} above the bottom card${named} to the top.`;
+}
+
+/** Which positions to outline: usually `affected`, but a count cut that moves
+ * most of the deck outlines the smaller block that ends up on top. */
+export function focus(event) {
+  if (event.phase === "count_cut" && !event.meta.identity) {
+    const rest = 53 - event.meta.count;
+    if (rest > 0 && rest < event.meta.count) return Array.from({ length: rest }, (_, i) => i);
+  }
+  return [...event.affected];
+}
+
 /** A short title for the step, e.g. "Triple cut". */
 export function headline(event) {
   if (HEADLINES[event.phase]) return HEADLINES[event.phase];
@@ -56,8 +78,8 @@ export function explain(event) {
       return "The jokers are already at the very top and bottom, so there is nothing outside them to swap.";
     }
     return (
-      `Everything outside the two jokers switches sides: the ${top} card(s) above the first joker ` +
-      `and the ${bottom} card(s) below the second trade places. The ${m.middle_len} cards from ` +
+      `Everything outside the two jokers switches sides: the ${cards(top)} above the first joker ` +
+      `and the ${cards(bottom)} below the second trade places. The ${m.middle_len} cards from ` +
       `one joker to the other stay exactly as they were.`
     );
   }
@@ -69,7 +91,7 @@ export function explain(event) {
       const source = letter ? `the passphrase letter ${letter} (worth ${count})` : `a count of ${count}`;
       return (
         `An extra count cut driven by ${source}: move that many cards from the top ` +
-        `to just above the bottom card.`
+        `to just above the bottom card.${shortSide(event)}`
       );
     }
     if (m.identity) {
@@ -80,8 +102,8 @@ export function explain(event) {
       );
     }
     return (
-      `The bottom card is ${m.bottom_card}, worth ${count}. Move ${count} card(s) ` +
-      `from the top to just above it. The bottom card itself never moves.`
+      `The bottom card is ${m.bottom_card}, worth ${count}. Move ${cards(count)} ` +
+      `from the top to just above it. The bottom card itself never moves.${shortSide(event)}`
     );
   }
 
@@ -107,5 +129,5 @@ export function explain(event) {
 /** Attach a Python-shaped explanations sidecar to a browser-made trace. */
 export const withExplanations = (trace) => ({
   ...trace,
-  explanations: trace.events.map((e) => ({ headline: headline(e), text: explain(e) })),
+  explanations: trace.events.map((e) => ({ headline: headline(e), text: explain(e), focus: focus(e) })),
 });

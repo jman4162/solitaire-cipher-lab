@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..cards import Card
+from ..cards import Card, letter_to_value
 from ..deck import Deck, validate_deck
 from ..steps import (
     Phase,
@@ -103,7 +103,8 @@ def replay(initial_deck: Deck, events: tuple[TraceEvent, ...]) -> Deck:
 
     For each event, the deck, the affected positions, the output card and the
     metadata must all match a fresh run of that step.  Metadata must match
-    exactly; the only extra key allowed is ``letter`` on a keying count cut.  A
+    exactly; the only extra key allowed is ``letter`` on a keying count cut,
+    and that letter must be the one whose value is the cut's count.  A
     round's ordinary count cut must be followed by its output (or, while keying,
     by the letter's count cut).  ``validate`` adds the checks that need the
     whole trace: round numbering, phase order and the output list.
@@ -123,7 +124,18 @@ def replay(initial_deck: Deck, events: tuple[TraceEvent, ...]) -> Deck:
             result = step(deck)
         recorded_meta = dict(event.meta)
         if letter_cut:
-            recorded_meta.pop("letter", None)
+            # The letter is the reason for the cut, so it must be the letter that
+            # gives this count; otherwise the explanation a renderer draws is false.
+            letter = recorded_meta.pop("letter", None)
+            if not (
+                isinstance(letter, str)
+                and len(letter) == 1
+                and "A" <= letter <= "Z"
+                and letter_to_value(letter) == event.meta.get("count")
+            ):
+                raise ValueError(
+                    f"replay diverged at round {event.round}: letter {letter!r} does not give this count"
+                )
         if (
             result.deck != event.after
             or tuple(result.affected) != tuple(event.affected)
@@ -146,13 +158,18 @@ def validate(trace: Trace) -> Deck:
 
     On top of ``replay``: rounds are numbered 1, 2, 3 ... with no gaps; every
     round is the four deck steps followed by either an output step or, while
-    keying, a letter count cut; and ``trace.output`` lists exactly the values of
-    the non-joker output cards, in order.  Returns the final deck.
+    keying, a letter count cut, with every round of one trace ending the same
+    way (a trace is a keystream run or a keying run, never both); and
+    ``trace.output`` lists exactly the values of the non-joker output cards, in
+    order.  Returns the final deck.
     """
     final = replay(trace.initial_deck, trace.events)
     events = trace.events
     if len(events) % 5:
         raise ValueError(f"invalid trace: {len(events)} events is not a whole number of rounds")
+    endings = {events[i].phase for i in range(4, len(events), 5)}
+    if len(endings) > 1:
+        raise ValueError("invalid trace: it mixes keying rounds with keystream rounds")
     for start in range(0, len(events), 5):
         number = start // 5 + 1
         block = events[start : start + 5]

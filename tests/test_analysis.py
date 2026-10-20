@@ -57,9 +57,21 @@ class TestKeyReuse:
         from solitaire_lab.keying import passphrase_deck
         from solitaire_lab.keystream import generate
 
+        first = len(report["message_1"])
         width = len(report["plaintext_1"])
-        long = generate(passphrase_deck("DEMOKEY")[0], 2 * width).values
-        assert report["continued"]["keystream"] == "".join(value_to_letter(v) for v in long[width:])
+        long = generate(passphrase_deck("DEMOKEY")[0], first + width).values
+        assert report["continued"]["keystream"] == "".join(value_to_letter(v) for v in long[first:])
+
+    def test_continuation_starts_after_the_whole_first_message(self):
+        """Unequal lengths: the second message must continue from all 10 letters, not 5."""
+        from solitaire_lab.cipher import encrypt
+        from solitaire_lab.keying import passphrase_deck
+
+        report = reuse.demonstrate("ABCDEFGHIJ", "HI", passphrase="SHAREDKEY")
+        start = passphrase_deck("SHAREDKEY")[0]
+        expected = encrypt("HI", encrypt("ABCDEFGHIJ", start).final_deck).text
+        assert report["continued"]["ciphertext_2"] == expected[: len(report["plaintext_1"])]
+        assert report["message_1"] == "ABCDEFGHIJ"
 
     def test_render_mentions_the_identity(self, report):
         text = reuse.render(report)

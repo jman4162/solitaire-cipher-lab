@@ -21,7 +21,7 @@ from helpers import deck_with_jokers_at, random_decks
 from solitaire_lab.deck import ORDERED_DECK
 from solitaire_lab.keying import passphrase_deck
 from solitaire_lab.keystream import generate
-from solitaire_lab.render.explain import explain, headline
+from solitaire_lab.render.explain import explain, focus, headline
 from solitaire_lab.steps import triple_cut
 from solitaire_lab.trace.events import Trace, TraceEvent
 from solitaire_lab.trace.schema import to_dict
@@ -32,12 +32,12 @@ WEB = ROOT / "web"
 pytestmark = pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
 
 DRIVER = f"""
-import {{ explain, headline }} from "{(WEB / "explain.js").as_uri()}";
+import {{ explain, focus, headline }} from "{(WEB / "explain.js").as_uri()}";
 let raw = "";
 process.stdin.on("data", (c) => (raw += c));
 process.stdin.on("end", () => {{
   const events = JSON.parse(raw);
-  process.stdout.write(JSON.stringify(events.map((e) => [headline(e), explain(e)])));
+  process.stdout.write(JSON.stringify(events.map((e) => [headline(e), explain(e), focus(e)])));
 }});
 """
 
@@ -96,11 +96,13 @@ def test_wording_is_identical_across_languages():
     assert len(rendered) == len(python_events)
 
     mismatches = []
-    for (js_headline, js_text), event in zip(rendered, python_events, strict=True):
+    for (js_headline, js_text, js_focus), event in zip(rendered, python_events, strict=True):
         if js_headline != headline(event):
             mismatches.append((event.phase, "headline", headline(event), js_headline))
         if js_text != explain(event):
             mismatches.append((event.phase, "text", explain(event), js_text))
+        if js_focus != focus(event):
+            mismatches.append((event.phase, "focus", focus(event), js_focus))
     assert not mismatches, "\n".join(
         f"{phase} {what}:\n  py: {py}\n  js: {js}" for phase, what, py, js in mismatches
     )
@@ -123,3 +125,12 @@ def test_the_comparison_covers_the_awkward_cases():
     assert any(m.get("top_len") == 0 and m.get("bottom_len") == 0 for m in metas), (
         "no no-op triple cut covered"
     )
+
+
+def test_the_comparison_covers_the_short_side_of_a_count_cut():
+    """The count-cut rewording and its outline must be compared, including the named-card case."""
+    _, python_events = collect_events()
+    short = [e for e in python_events if e.phase == "count_cut" and focus(e) != list(e.affected)]
+    assert short, "no count cut in the sample moves more than half the deck"
+    assert any(len(focus(e)) == 1 for e in short), "no count cut leaves exactly one card on top"
+    assert all("That is the same as moving" in explain(e) for e in short)

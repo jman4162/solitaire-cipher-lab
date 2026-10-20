@@ -104,7 +104,7 @@ single character differs.
 | Cryptanalysis lab (key reuse, keystream bias) | ✅ |
 | Interactive web explainer | ✅ |
 | Standalone SVG renderer for static figures (`solitaire-lab render`) | ✅ |
-| Test suite: known-answer, property, CLI, architecture, page data (402 tests) | ✅ |
+| Test suite: known-answer, property, CLI, architecture, page data (407 tests) | ✅ |
 | Live "encrypt your own message" in the browser | ✅ |
 | Key reuse in the browser: reset vs continue, both real encryptions | ✅ |
 | Live bias experiment with a seeded run and a deck-level bootstrap interval | ✅ |

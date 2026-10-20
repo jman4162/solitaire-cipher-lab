@@ -150,9 +150,10 @@ export class TracePlayer {
 
   render() {
     const event = this.events[this.index];
-    renderDeck(this.els.deck, event.after, event.affected);
-    this.els.round.textContent = `Round ${event.round}`;
     const words = (this.trace.explanations || [])[this.index] || {};
+    // The renderer may point at a smaller, clearer set of cards than `affected`.
+    renderDeck(this.els.deck, event.after, words.focus || event.affected);
+    this.els.round.textContent = `Round ${event.round}`;
     this.els.title.textContent = words.headline || HEADLINES[event.phase] || event.phase;
     this.els.explain.textContent = words.text || "";
     this.els.deck.setAttribute("aria-label", `Deck after round ${event.round}, ${this.els.title.textContent}. ${words.text || ""}`.trim());

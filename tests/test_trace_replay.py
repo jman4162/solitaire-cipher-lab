@@ -201,3 +201,41 @@ class TestValidate:
         assert replay(trace.initial_deck, trace.events) == deck
         with pytest.raises(ValueError, match="out of order"):
             validate(trace)
+
+    def _keying_trace(self):
+        _, keyed = passphrase_deck("CRYPTONOMICON", trace=True)
+        return keyed
+
+    def _with_letter(self, keyed, letter):
+        events = list(keyed.events)
+        cut = events[4]
+        meta = dict(cut.meta)
+        if letter is None:
+            meta.pop("letter")
+        else:
+            meta["letter"] = letter
+        events[4] = self._swap(cut, meta=meta)
+        return type(keyed)(initial_deck=keyed.initial_deck, events=tuple(events), output=keyed.output)
+
+    def test_a_letter_that_does_not_give_the_count_is_rejected(self):
+        """Round 1 keys on C (3); claiming Z would make the explanation false."""
+        keyed = self._keying_trace()
+        assert keyed.events[4].meta["letter"] == "C"
+        with pytest.raises(ValueError, match="does not give this count"):
+            validate(self._with_letter(keyed, "Z"))
+
+    def test_a_missing_letter_is_rejected(self):
+        with pytest.raises(ValueError, match="does not give this count"):
+            validate(self._with_letter(self._keying_trace(), None))
+
+    def test_a_trace_mixing_keying_and_keystream_rounds_is_rejected(self):
+        """Each half replays from its own deck; joined, they are not one supported run."""
+        deck, keyed = passphrase_deck("AB", trace=True)
+        stream = generate(deck, 2, trace=True).trace
+        renumbered = tuple(self._swap(e, round=e.round + keyed.rounds) for e in stream.events)
+        mixed = type(keyed)(
+            initial_deck=keyed.initial_deck, events=keyed.events + renumbered, output=stream.output
+        )
+        assert replay(mixed.initial_deck, mixed.events) == stream.final_deck
+        with pytest.raises(ValueError, match="mixes keying"):
+            validate(mixed)

@@ -57,7 +57,7 @@
 
 <h2><span class="num">Section 03</span>From cards to letters</h2>
 
-<p>The cipher itself is almost an afterthought. Convert each plaintext letter to a number (A=1 … Z=26), add the keystream number, wrap at 26, convert back. The entire security of the scheme lives in the deck.</p>
+<p>The cipher itself is almost an afterthought. Convert each plaintext letter to a number (A=1 … Z=26), add the keystream number, wrap at 26, convert back. The arithmetic is simple. The cipher's security depends on keeping the deck order secret and on the keystream being unpredictable, and Section 06 shows the second part failing.</p>
 
 <div class="scroll" id="layers"></div>
 
@@ -188,7 +188,7 @@
   <p class="note" id="bias-status" aria-live="polite"></p>
 </div>
 
-<p>With a few hundred decks the Solitaire interval and the uniform interval stop overlapping. The gap is small but consistent, and it is enough to tell the output apart from random, which is the property a stream cipher is supposed to have. Telling a stream apart from random is a weaker result than reading a particular short message: an attacker with one 20-letter ciphertext learns little from a 0.6-point excess. It is still the property the cipher promised, and it is how attacks start. The bias was spotted by Paul Crowley in 1999, shortly after the cipher was published, and analysed in detail by Daniel Shiu in 2019. Crowley also showed that the deck transformation is not reversible, although the original description says it is: a joker on the bottom wraps to second from the top, which is exactly where a joker on the top lands too, so two different decks can step to the same next one. That does not stop ordinary encryption and decryption working, since both sides generate the keystream forwards.</p>
+<p>With a few hundred decks the interval for the difference between the two rates stays above zero. The gap is small but consistent, and it is enough to tell the output apart from random, which is the property a stream cipher is supposed to have. Telling a stream apart from random is a weaker result than reading a particular short message: an attacker with one 20-letter ciphertext learns little from a 0.6-point excess. It is still the property the cipher promised, and it is how attacks start. The bias was spotted by Paul Crowley in 1999, shortly after the cipher was published, and analysed in detail by Daniel Shiu in 2019. Crowley also showed that the deck transformation is not reversible, although the original description says it is: a joker on the bottom wraps to second from the top, which is exactly where a joker on the top lands too, so two different decks can step to the same next one. That does not stop ordinary encryption and decryption working, since both sides generate the keystream forwards.</p>
 
 <p><em>Looking</em> scrambled and <em>being</em> unpredictable are different claims, and the distance between them can be measured. Modern stream ciphers are designed so that no test that can feasibly be run tells their output apart from random, and they are published so that people can go looking.</p>
 

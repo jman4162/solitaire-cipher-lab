@@ -55,31 +55,35 @@ def demonstrate(
     first message's final deck, where it does not.
     """
     start = deck if deck is not None else passphrase_deck(passphrase)[0]
-    p1, p2 = pad(normalize(first)), pad(normalize(second))
-    width = min(len(p1), len(p2))
-    p1, p2 = p1[:width], p2[:width]
+    m1, m2 = pad(normalize(first)), pad(normalize(second))
 
-    first_run = encrypt(p1, start, pad_message=False)
-    reset = encrypt(p2, start, pad_message=False)
-    continued = encrypt(p2, first_run.final_deck, pad_message=False)
+    # Encrypt each whole message, so the continued case starts from the deck the
+    # *complete* first message left behind.  Only the comparison is truncated.
+    first_run = encrypt(m1, start, pad_message=False)
+    reset = encrypt(m2, start, pad_message=False)
+    continued = encrypt(m2, first_run.final_deck, pad_message=False)
 
+    width = min(len(m1), len(m2))
+    p1, p2, c1 = m1[:width], m2[:width], first_run.text[:width]
     plain_difference = _difference(p1, p2)
-    reset_difference = _difference(first_run.text, reset.text)
-    continued_difference = _difference(first_run.text, continued.text)
+    reset_difference = _difference(c1, reset.text[:width])
+    continued_difference = _difference(c1, continued.text[:width])
 
     return {
         "passphrase": passphrase,
+        "message_1": m1,
+        "message_2": m2,
         "plaintext_1": p1,
         "plaintext_2": p2,
-        "ciphertext_1": first_run.text,
-        "ciphertext_2": reset.text,
-        "keystream": _letters(first_run.keystream),
+        "ciphertext_1": c1,
+        "ciphertext_2": reset.text[:width],
+        "keystream": _letters(first_run.keystream[:width]),
         "cipher_difference": reset_difference,
         "plain_difference": plain_difference,
         "key_cancelled": reset_difference == plain_difference,
         "continued": {
-            "ciphertext_2": continued.text,
-            "keystream": _letters(continued.keystream),
+            "ciphertext_2": continued.text[:width],
+            "keystream": _letters(continued.keystream[:width]),
             "cipher_difference": continued_difference,
             "key_cancelled": continued_difference == plain_difference,
         },

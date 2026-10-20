@@ -26,7 +26,7 @@ from solitaire_lab.cipher import encrypt  # noqa: E402
 from solitaire_lab.deck import ORDERED_DECK  # noqa: E402
 from solitaire_lab.keying import passphrase_deck  # noqa: E402
 from solitaire_lab.keystream import generate  # noqa: E402
-from solitaire_lab.render.explain import explain, headline  # noqa: E402
+from solitaire_lab.render.explain import explain, focus, headline  # noqa: E402
 from solitaire_lab.trace.schema import to_dict  # noqa: E402
 
 DATA = ROOT / "web" / "data"
@@ -42,7 +42,9 @@ def _with_explanations(payload: dict, trace) -> dict:
     wire format stays free of it. But generating it here rather than in JS
     means one explanation engine, not two that drift.
     """
-    payload["explanations"] = [{"headline": headline(e), "text": explain(e)} for e in trace.events]
+    payload["explanations"] = [
+        {"headline": headline(e), "text": explain(e), "focus": focus(e)} for e in trace.events
+    ]
     return payload
 
 
