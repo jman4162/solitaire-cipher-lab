@@ -31,7 +31,7 @@
 
 <h2><span class="num">Section 01</span>The key is the deck</h2>
 
-<p>There is no password to remember and no number to key in. The <em>order of the cards</em> is the key. Two people who shuffle their decks into the same order can talk; anyone else is holding 54 factorial possible orderings, a number with 72 digits in it.</p>
+<p>The <em>order of the cards</em> is the key. Two people whose decks are in the same order can talk. There are 54 factorial possible orders, a 72-digit number, or about 2<sup>237</sup>. That is an upper bound on what the key can hold. How hard a real key is to guess depends on how the deck was ordered: a hand shuffle is not perfectly uniform, and a deck keyed from a passphrase (the default below) is only as hard to guess as the passphrase. A large number of states also says nothing about whether the cipher itself is secure, which Section 06 tests.</p>
 
 <p>Every card has a value. Clubs are worth 1 to 13, diamonds 14 to 26, hearts 27 to 39, spades 40 to 52. Both jokers are worth 53, which turns out to matter.</p>
 
@@ -101,8 +101,9 @@
 
   <div class="controls">
     <button type="button" class="primary" id="live-run">Encrypt</button>
-    <button type="button" id="live-copy-deck">Link to this deck</button>
+    <button type="button" id="live-copy-deck">Share this deck (the link contains the key)</button>
   </div>
+  <p class="note">The deck order is the key. Anyone who has a deck link can decrypt anything sent with that deck, so share links only for practice decks.</p>
 
   <p class="error" id="live-error" role="alert" hidden></p>
 
@@ -122,14 +123,19 @@
 </div>
 
 <div id="live-reuse-wrap" hidden>
-  <h3>Now send a second message with the same deck</h3>
-  <p>Do not reset the deck. Encrypt again from the same starting order, as someone in a hurry would.</p>
+  <h3>Now send a second message</h3>
+  <p>The deck is deterministic, so what happens next depends on where the second message starts. Someone in a hurry resets the deck to the original order and encrypts again. Someone careful carries on from the order the first message left behind.</p>
   <div class="lab">
+    <fieldset class="keymode">
+      <legend>Where does the second message start?</legend>
+      <label><input type="radio" name="reusemode" value="reset" id="rm-reset" checked> Reset to the original deck</label>
+      <label><input type="radio" name="reusemode" value="continue" id="rm-continue"> Continue from where the deck ended</label>
+    </fieldset>
     <div class="field">
       <label for="live-second">Second message</label>
       <input type="text" id="live-second" value="RETREAT AT TEN" autocomplete="off" spellcheck="false">
     </div>
-    <div class="controls"><button type="button" class="primary" id="live-reuse-run">Encrypt with the same deck</button></div>
+    <div class="controls"><button type="button" class="primary" id="live-reuse-run">Encrypt the second message</button></div>
     <div id="live-reuse-out" hidden>
       <div class="scroll" id="live-reuse-table"></div>
       <p class="verdict" id="live-reuse-verdict" aria-live="polite"></p>
@@ -137,14 +143,20 @@
   </div>
 </div>
 
-<h2><span class="num">Section 05</span>Never use the same deck twice</h2>
+<h2><span class="num">Section 05</span>Never restart the keystream</h2>
 
-<p>If you ran the section above twice, you have already seen this. Here is the failure written out: encrypt two messages with the <em>same</em> starting deck and an attacker can subtract one ciphertext from the other. The keystream, which is the thing you were protecting, cancels out completely.</p>
+<p>If you tried both options above, you have already seen this. Here is the failure written out. The same starting deck always produces the same keystream, so two messages encrypted from the <em>same</em> starting order share a keystream, and an attacker can subtract one ciphertext from the other. The keystream, which is the thing you were protecting, cancels out completely.</p>
 
 <pre class="block" id="reuse-algebra"></pre>
 <div class="scroll" id="reuse"></div>
 
 <p>The attacker never learns the key and does not need to. They learn the difference between your two plaintexts, and with any guess about one message, they get the other. This is not a flaw in Solitaire specifically; it is true of every additive stream cipher. Solitaire just makes it visible.</p>
+
+<p>Here is the same second message encrypted from the deck the first message left behind. The keystream carries on instead of restarting, so the subtraction no longer cancels:</p>
+
+<div class="scroll" id="reuse-continued"></div>
+
+<p>Continuing the deck avoids this particular leak. It does nothing about the weakness in the next section.</p>
 
 <h2><span class="num">Section 06</span>It looks random. It isn't.</h2>
 
@@ -157,9 +169,28 @@
 
 <p id="bias-detail" class="note"></p>
 
-<p>The gap is small but consistent, and it is enough to tell the output apart from random, which is the property a stream cipher is supposed to have. The bias was spotted by Paul Crowley in 1999, shortly after the cipher was published, and analysed in detail by Daniel Shiu in 2019. Crowley also showed that the deck transformation is not reversible, although the original description says it is: a joker on the bottom wraps to second from the top, which is exactly where a joker on the top lands too, so two different decks can step to the same next one. That does not stop ordinary encryption and decryption working, since both sides generate the keystream forwards.</p>
+<div class="lab">
+  <div class="field">
+    <label for="bias-decks">Decks to shuffle</label>
+    <select id="bias-decks">
+      <option value="200">200</option>
+      <option value="500" selected>500</option>
+      <option value="1000">1,000</option>
+      <option value="2000">2,000</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="bias-seed">Seed</label>
+    <input type="text" id="bias-seed" inputmode="numeric" autocomplete="off" spellcheck="false">
+    <p class="note">Each deck produces 250 keystream letters. The same seed always gives the same decks, so anyone can check your numbers. A 95% interval misses the true value about one run in 20, so now and then the uniform row will sit just off 3.85%. Try another seed: the Solitaire row stays high.</p>
+  </div>
+  <div class="controls"><button type="button" class="primary" id="bias-run">Run the test</button></div>
+  <p class="note" id="bias-status" aria-live="polite"></p>
+</div>
 
-<p><em>Looking</em> scrambled and <em>being</em> unpredictable are different claims, and the distance between them can be measured. Modern stream ciphers are designed so that no statistic like this one separates their output from noise, and they are published so that people can go looking.</p>
+<p>With a few hundred decks the Solitaire interval and the uniform interval stop overlapping. The gap is small but consistent, and it is enough to tell the output apart from random, which is the property a stream cipher is supposed to have. Telling a stream apart from random is a weaker result than reading a particular short message: an attacker with one 20-letter ciphertext learns little from a 0.6-point excess. It is still the property the cipher promised, and it is how attacks start. The bias was spotted by Paul Crowley in 1999, shortly after the cipher was published, and analysed in detail by Daniel Shiu in 2019. Crowley also showed that the deck transformation is not reversible, although the original description says it is: a joker on the bottom wraps to second from the top, which is exactly where a joker on the top lands too, so two different decks can step to the same next one. That does not stop ordinary encryption and decryption working, since both sides generate the keystream forwards.</p>
+
+<p><em>Looking</em> scrambled and <em>being</em> unpredictable are different claims, and the distance between them can be measured. Modern stream ciphers are designed so that no test that can feasibly be run tells their output apart from random, and they are published so that people can go looking.</p>
 
 <h2><span class="num">Section 07</span>Run it yourself</h2>
 
@@ -183,6 +214,7 @@ solitaire-lab analyze bias --samples 5000</pre>
 <script type="module">
 import { TracePlayer, renderDeck } from "./player.js";
 import { initLive } from "./live.js";
+import { initBias } from "./bias.js";
 
 const load = (name) => fetch(`data/${name}.json`).then((r) => r.json());
 
@@ -265,28 +297,27 @@ load("reuse").then((d) => {
     });
   });
   document.getElementById("reuse").replaceChildren(table);
+
+  const c = d.continued;
+  const more = document.createElement("table");
+  more.className = "layers";
+  [["K2", c.keystream, "k"], ["C2", c.ciphertext_2, "c"],
+   ["C1 − C2", c.cipher_difference, "p"], ["P1 − P2", d.plain_difference, "p"]].forEach(([label, text, cls]) => {
+    const tr = more.insertRow();
+    const th = document.createElement("th");
+    th.textContent = label;
+    tr.appendChild(th);
+    text.split("").forEach((ch) => {
+      const td = tr.insertCell();
+      td.className = cls;
+      td.textContent = ch;
+    });
+  });
+  document.getElementById("reuse-continued").replaceChildren(more);
 });
 
-/* --- Section 05: the measured bias --- */
-load("bias").then((d) => {
-  const pct = (x) => (x * 100).toFixed(3) + "%";
-  document.getElementById("bias-stats").innerHTML = `
-    <div class="stat"><div class="n">${pct(d.ideal_rate)}</div><div class="l">ideal repeat rate (1 in 26)</div></div>
-    <div class="stat"><div class="n warnish">${pct(d.observed_rate)}</div><div class="l">Solitaire's measured rate</div></div>
-    <div class="stat"><div class="n warnish">${d.excess_ratio.toFixed(2)}×</div><div class="l">more repeats than it should have</div></div>`;
-  const scale = Math.max(d.ideal_rate, d.observed_rate) * 1.25;
-  const bar = (label, value, cls) => `
-    <div class="bar-row">
-      <span class="lab">${label}</span>
-      <span class="bar-track"><span class="bar-fill ${cls}" style="width:${(value / scale) * 100}%"></span></span>
-      <span class="val">${pct(value)}</span>
-    </div>`;
-  document.getElementById("bias-bars").innerHTML =
-    bar("ideal stream", d.ideal_rate, "ideal") + bar("Solitaire", d.observed_rate, "actual");
-  document.getElementById("bias-detail").textContent =
-    `Measured over ${d.pairs_examined.toLocaleString()} adjacent pairs from ${d.samples.toLocaleString()} randomly shuffled decks: ` +
-    `a repeat roughly every ${(1 / d.observed_rate).toFixed(1)} letters instead of every 26.`;
-});
+/* --- Section 06: the measured bias, recorded and live --- */
+load("bias").then(initBias);
 </script>
 </body>
 </html>

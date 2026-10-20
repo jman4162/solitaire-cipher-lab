@@ -1,9 +1,9 @@
 /* The "Try it" section: encrypt your own message, in the browser.
  *
  * Everything the cipher does comes from engine.js; everything the reader sees
- * is drawn by player.js. This file is the wiring between them — a form, some
- * validation, and the second-message cancellation that is the whole reason
- * live execution is worth a second implementation. */
+ * is drawn by player.js. This file is the wiring between them: a form, some
+ * validation, and the second-message comparison that is the whole reason live
+ * execution is worth a second implementation. */
 
 import * as E from "./engine.js";
 import { withExplanations } from "./explain.js";
@@ -12,6 +12,10 @@ import { TracePlayer, renderDeck } from "./player.js";
 const $ = (id) => document.getElementById(id);
 
 const state = { deck: null, deckSource: "", first: null, player: null };
+
+// A full trace keeps five 54-card snapshots per letter and the table draws a
+// cell per letter, so the page caps what it traces. The CLI has no cap.
+const MAX_LETTERS = 250;
 
 /* ---- key selection ---- */
 
@@ -87,12 +91,21 @@ function run() {
   }
   const message = $("live-message").value;
   if (!E.normalize(message)) return fail("Enter a message. Letters only; everything else is ignored.");
+  if (E.normalize(message).length > MAX_LETTERS) {
+    return fail(`This page traces up to ${MAX_LETTERS} letters. For longer text, use solitaire-lab encrypt.`);
+  }
 
   state.deck = deck;
   showDeck(deck);
 
   const result = E.encrypt(message, deck);
-  state.first = { plaintext: E.pad(E.normalize(message)), ciphertext: result.text, keystream: result.keystream };
+  state.first = {
+    plaintext: E.pad(E.normalize(message)),
+    ciphertext: result.text,
+    keystream: result.keystream,
+    startDeck: deck,
+    finalDeck: result.finalDeck,
+  };
 
   $("live-layers").replaceChildren(layersTable(state.first.plaintext, result.keystream, result.text));
   $("live-cipher").textContent = E.group(result.text);
@@ -103,40 +116,49 @@ function run() {
 
   // A fresh player over the reader's own trace. Explanations come from
   // explain.js because this trace did not exist at build time.
-  state.player?.stop();
+  state.player?.destroy();
   state.player = new TracePlayer($("live-player"), withExplanations(result.trace));
   $("live-player-wrap").hidden = false;
   $("live-reuse-wrap").hidden = false;
   $("live-reuse-out").hidden = true;
 }
 
-/** The payoff: a second message under the same deck, and the key cancels. */
+/** The payoff: a second message, from the reset deck or from where the deck ended.
+ *
+ * Both cases run the real cipher. Reset and the keystream cancels in C1 - C2;
+ * continue and it does not. */
 function runReuse() {
   const second = $("live-second").value;
   if (!state.first) return;
   $("live-error").hidden = true;
-  if (!E.normalize(second)) return fail("Enter a second message to send under the same deck.");
+  if (!E.normalize(second)) return fail("Enter a second message.");
+  if (E.normalize(second).length > MAX_LETTERS) {
+    return fail(`This page traces up to ${MAX_LETTERS} letters. For longer text, use solitaire-lab encrypt.`);
+  }
 
+  const mode = document.querySelector('input[name="reusemode"]:checked').value;
   const p1 = state.first.plaintext;
   const p2 = E.pad(E.normalize(second));
   const width = Math.min(p1.length, p2.length);
-  const keys = state.first.keystream.slice(0, width).map((k) => k % 26 || 26);
-  const val = (s) => [...s.slice(0, width)].map((c) => c.charCodeAt(0) - 64);
-  const chr = (vs) => vs.map((v) => String.fromCharCode(64 + v)).join("");
+  const start = mode === "reset" ? state.first.startDeck : state.first.finalDeck;
+  const c2 = E.encrypt(p2, start, { trace: false });
 
-  const c1 = val(p1).map((p, i) => E.addMod26(p, keys[i]));
-  const c2 = val(p2).map((p, i) => E.addMod26(p, keys[i]));
-  const cipherDiff = c1.map((a, i) => E.subtractMod26(a, c2[i]));
-  const plainDiff = val(p1).map((a, i) => E.subtractMod26(a, val(p2)[i]));
+  const diff = (a, b) =>
+    [...a.slice(0, width)]
+      .map((ch, i) => String.fromCharCode(64 + E.subtractMod26(ch.charCodeAt(0) - 64, b.charCodeAt(i) - 64)))
+      .join("");
+  const cipherDiff = diff(state.first.ciphertext, c2.text);
+  const plainDiff = diff(p1, p2);
 
   const rows = [
     ["P1", p1.slice(0, width), "p"],
     ["P2", p2.slice(0, width), "p"],
-    ["K", chr(keys), "k"],
-    ["C1", chr(c1), "c"],
-    ["C2", chr(c2), "c"],
-    ["C1 − C2", chr(cipherDiff), "p"],
-    ["P1 − P2", chr(plainDiff), "p"],
+    ["K1", state.first.keystream.slice(0, width).map(E.valueToLetter).join(""), "k"],
+    ["K2", c2.keystream.slice(0, width).map(E.valueToLetter).join(""), "k"],
+    ["C1", state.first.ciphertext.slice(0, width), "c"],
+    ["C2", c2.text.slice(0, width), "c"],
+    ["C1 − C2", cipherDiff, "p"],
+    ["P1 − P2", plainDiff, "p"],
   ];
   const table = document.createElement("table");
   table.className = "layers";
@@ -152,10 +174,15 @@ function runReuse() {
     }
   }
   $("live-reuse-table").replaceChildren(table);
-  const cancelled = chr(cipherDiff) === chr(plainDiff);
-  $("live-reuse-verdict").textContent = cancelled
-    ? "The last two rows are identical. Subtracting the ciphertexts cancelled the key exactly. An attacker who never saw your deck now knows the difference between your two messages."
-    : "Something is wrong: the rows should match.";
+  const cancelled = cipherDiff === plainDiff;
+  $("live-reuse-verdict").textContent =
+    mode === "reset"
+      ? cancelled
+        ? "K1 and K2 are the same, and the last two rows are identical. Subtracting the ciphertexts cancelled the key exactly. An attacker who never saw your deck now knows the difference between your two messages."
+        : "Something is wrong: a reset deck should reproduce the same keystream."
+      : cancelled
+        ? "The rows happen to match, which a continued keystream makes vanishingly unlikely. Try a longer message."
+        : "K2 is the next stretch of keystream, so the last two rows differ and nothing cancels. Continuing the deck avoids this leak.";
   $("live-reuse-out").hidden = false;
 }
 
@@ -192,11 +219,11 @@ export function initLive() {
     history.replaceState(null, "", hash);
     try {
       await navigator.clipboard.writeText(location.origin + location.pathname + hash);
-      e.target.textContent = "Copied";
+      e.target.textContent = "Copied. Anyone with the link has the key.";
     } catch {
       e.target.textContent = "Link in address bar";
     }
-    setTimeout(() => (e.target.textContent = "Link to this deck"), 1600);
+    setTimeout(() => (e.target.textContent = "Share this deck (the link contains the key)"), 2400);
   });
 
   // A deck permalink loads into the paste field. Messages are never put in a URL.

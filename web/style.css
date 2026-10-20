@@ -11,7 +11,7 @@
   --surface-2: #e8e9e3;
   --ink: #16191a;
   --ink-dim: #53595a;
-  --ink-faint: #838a89;
+  --ink-faint: #5f6665;
   --rule: #d8dad2;
   --accent: #1d6146;
   --accent-soft: #e0ebe4;
@@ -36,7 +36,7 @@
     --surface-2: #222927;
     --ink: #e6eae7;
     --ink-dim: #a2aca8;
-    --ink-faint: #74807b;
+    --ink-faint: #8a958f;
     --rule: #2c3532;
     --accent: #6fc59a;
     --accent-soft: #17302582;
@@ -53,7 +53,7 @@
 :root[data-theme="dark"] {
   --felt: #0f2a20; --felt-deep: #081710;
   --bg: #101413; --surface: #181e1c; --surface-2: #222927;
-  --ink: #e6eae7; --ink-dim: #a2aca8; --ink-faint: #74807b; --rule: #2c3532;
+  --ink: #e6eae7; --ink-dim: #a2aca8; --ink-faint: #8a958f; --rule: #2c3532;
   --accent: #6fc59a; --accent-soft: #17302582; --red: #e8776b; --black: #d4dad6;
   --joker: #b79ae0; --joker-soft: #2c2438; --brass: #d8b458; --brass-soft: #332c16;
   --good: #6fc59a;
@@ -87,7 +87,7 @@ header.hero {
   border-bottom: 3px solid var(--brass);
 }
 .hero .sub, .hero .byline { color: #bdcfc4; }
-.hero .byline a, .hero .sub a { color: var(--brass); }
+.hero .byline a, .hero .sub a { color: #e2cf98; }
 .hero h1 {
   font-family: var(--display);
   font-size: clamp(2rem, 6vw, 3.1rem);
@@ -239,12 +239,13 @@ table.layers .v { color: var(--ink-faint); font-size: .78rem; }
 
 .bars { margin: 1.2rem 0; }
 .bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin-bottom: .45rem; font-size: .85rem; }
-.bar-row .lab { flex: 0 0 8.5em; text-align: right; color: var(--ink-dim); font-size: .8rem; }
+.bar-row .bar-label { flex: 0 0 8.5em; text-align: right; color: var(--ink-dim); font-size: .8rem; }
 .bar-track { flex: 1 1 auto; height: 20px; background: var(--surface-2); border-radius: 4px; overflow: hidden; border: 1px solid var(--rule); }
 .bar-fill { display: block; height: 100%; border-radius: 3px 0 0 3px; }
 .bar-fill.ideal { background: var(--ink-faint); }
 .bar-fill.actual { background: var(--brass); }
-.bar-row .val { flex: 0 0 4.5em; font-family: var(--mono); font-size: .8rem; }
+.bar-row .val { flex: 0 0 13.5em; font-family: var(--mono); font-size: .8rem; }
+.bar-row .range { color: var(--ink-faint); }
 
 pre.block {
   background: var(--surface-2); border: 1px solid var(--rule);
@@ -262,7 +263,8 @@ footer { border-top: 1px solid var(--rule); margin-top: 4rem; padding-top: 1.5re
 @media (max-width: 560px) {
   body { font-size: 16px; }
   .card { min-width: 26px; font-size: 10.5px; }
-  .bar-row .lab { flex-basis: 100%; text-align: left; }
+  .bar-row .bar-label { flex-basis: 100%; text-align: left; }
+  .bar-row .val { flex-basis: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -297,7 +299,7 @@ fieldset.keymode legend {
 fieldset.keymode label { font-size: .9rem; display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; }
 fieldset.keymode input { accent-color: var(--accent); }
 
-.lab input[type="text"], .lab textarea {
+.lab input[type="text"], .lab textarea, .lab select {
   font: inherit;
   font-family: var(--mono);
   font-size: .9rem;
@@ -310,7 +312,7 @@ fieldset.keymode input { accent-color: var(--accent); }
   max-width: 100%;
 }
 .lab textarea { resize: vertical; line-height: 1.5; }
-.lab input[type="text"]:focus, .lab textarea:focus { border-color: var(--accent); outline: none; }
+.lab input[type="text"]:focus, .lab textarea:focus, .lab select:focus { border-color: var(--accent); outline: none; }
 
 button.linkish {
   background: none; border: 0; padding: 0;

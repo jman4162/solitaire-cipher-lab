@@ -78,7 +78,7 @@ export class TracePlayer {
         <button class="prev">&#8592; Prev</button>
         <button class="primary play">Play</button>
         <button class="next">Next &#8594;</button>
-        <input class="progress" type="range" min="0" step="1" />
+        <input class="progress" type="range" min="0" step="1" aria-label="Step" />
         <span class="counter"></span>
       </div>
       <div class="keystream-out"></div>`;
@@ -106,12 +106,15 @@ export class TracePlayer {
       this.stop();
       this.go(Number(e.target.value));
     });
+    // One controller per player, so destroy() removes the root listener that a
+    // rebuilt player on the same element would otherwise stack on top of.
+    this.abort = new AbortController();
     this.root.addEventListener("keydown", (e) => {
       // The slider handles its own arrow keys; stepping here as well would skip one.
       if (e.target === this.els.progress) return;
       if (e.key === "ArrowRight") { this.stop(); this.go(this.index + 1); }
       if (e.key === "ArrowLeft") { this.stop(); this.go(this.index - 1); }
-    });
+    }, { signal: this.abort.signal });
     this.root.tabIndex = 0;
   }
 
@@ -134,6 +137,11 @@ export class TracePlayer {
     }, 900);
   }
 
+  destroy() {
+    this.stop();
+    this.abort.abort();
+  }
+
   stop() {
     clearInterval(this.timer);
     this.timer = null;
@@ -147,6 +155,11 @@ export class TracePlayer {
     const words = (this.trace.explanations || [])[this.index] || {};
     this.els.title.textContent = words.headline || HEADLINES[event.phase] || event.phase;
     this.els.explain.textContent = words.text || "";
+    this.els.deck.setAttribute("aria-label", `Deck after round ${event.round}, ${this.els.title.textContent}. ${words.text || ""}`.trim());
+    this.els.progress.setAttribute(
+      "aria-valuetext",
+      `step ${this.index + 1} of ${this.events.length}, ${this.els.title.textContent}`
+    );
     this.els.progress.value = String(this.index);
     this.els.counter.textContent = `${this.index + 1} / ${this.events.length}`;
     this.els.prev.disabled = this.index === 0;

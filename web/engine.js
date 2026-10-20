@@ -303,11 +303,25 @@ export function passphraseDeck(passphrase, { deck = ORDERED_DECK, trace = true }
   };
 }
 
-/** A cryptographically random shuffle. Never Math.random for a key. */
-export function shuffledDeck() {
+const cryptoUint32 = () => crypto.getRandomValues(new Uint32Array(1))[0];
+
+/** A uniform integer in [0, n). Plain `% n` would favour small values whenever
+ * n does not divide 2^32, so draws from the short top range are rejected. */
+export function uniformIndex(n, nextUint32 = cryptoUint32) {
+  const limit = 2 ** 32 - (2 ** 32 % n);
+  let x;
+  do x = nextUint32();
+  while (x >= limit);
+  return x % n;
+}
+
+/** A Fisher-Yates shuffle. The default source is crypto.getRandomValues; never
+ * Math.random for a key. The bias experiment passes a seeded source instead,
+ * so a run can be repeated. */
+export function shuffledDeck(nextUint32 = cryptoUint32) {
   const cards = ORDERED_DECK.slice();
   for (let i = cards.length - 1; i > 0; i--) {
-    const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+    const j = uniformIndex(i + 1, nextUint32);
     [cards[i], cards[j]] = [cards[j], cards[i]];
   }
   return cards;

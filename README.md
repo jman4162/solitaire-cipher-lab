@@ -16,6 +16,9 @@ hand cipher designed to be executed with an ordinary deck of 54 playing cards.
 
 ## Why this exists
 
+This is an interactive lesson in how stream ciphers work and fail, backed by a
+Python reference implementation.
+
 Most cipher implementations hand you `encrypt()` and `decrypt()` and keep the
 interesting part hidden. Solitaire deserves better treatment, because its
 internal state *is* a deck of cards, which a learner can hold, shuffle and
@@ -27,7 +30,7 @@ by those reports rather than reimplementing the algorithm. A diagram cannot
 drift out of step with the code that produced it.
 
 ```python
-from solitaire_lab import ORDERED_DECK, encrypt, replay
+from solitaire_lab import ORDERED_DECK, encrypt, replay, validate
 
 result = encrypt("DO NOT USE PC", ORDERED_DECK, trace=True)
 result.text  # ciphertext
@@ -35,8 +38,9 @@ result.keystream  # the card values behind it
 result.final_deck  # where the deck ended up
 result.trace.events  # every state transition, replayable
 
-# A trace is an executable proof of what the engine did:
+# A trace is a replay-verified record of what the engine did:
 replay(result.trace.initial_deck, result.trace.events) == result.final_deck
+validate(result.trace)  # also checks round numbering, phase order and outputs
 ```
 
 There is no hidden cipher object: the starting deck is an explicit input and the
@@ -100,8 +104,10 @@ single character differs.
 | Cryptanalysis lab (key reuse, keystream bias) | ✅ |
 | Interactive web explainer | ✅ |
 | Standalone SVG renderer for static figures (`solitaire-lab render`) | ✅ |
-| Test suite: known-answer, property, CLI, architecture, page data (392 tests) | ✅ |
+| Test suite: known-answer, property, CLI, architecture, page data (402 tests) | ✅ |
 | Live "encrypt your own message" in the browser | ✅ |
+| Key reuse in the browser: reset vs continue, both real encryptions | ✅ |
+| Live bias experiment with a seeded run and a deck-level bootstrap interval | ✅ |
 | JS engine conformance against Python traces (517 cases) | ✅ |
 
 ## Command line
@@ -115,6 +121,9 @@ solitaire-lab analyze bias --samples 5000        # measure the keystream bias
 solitaire-lab export -p "SECRET" -m "HELLO" -o trace.json
 solitaire-lab render rounds --ordered-deck -r 2 -o figure.svg   # a blog-ready figure
 ```
+
+An exported trace records the starting deck, which is the key, and every
+keystream value. Treat a trace like the key itself.
 
 `worksheet` is the one to use with a real deck. It prints the deck state after
 every round, so when your physical shuffle drifts from the machine's you can
@@ -168,6 +177,13 @@ scripts/slopcheck.sh           # prose lint (slopscore + slopless), advisory
 ```
 
 `pre-commit install` adds ruff and slopscore-lint as commit hooks.
+
+## Related
+
+[delorum/pontifex](https://github.com/delorum/pontifex) is a desktop GUI that
+encrypts with Solitaire and shows the deck operations. This project adds the
+recorded execution traces, the cross-language conformance suite, and the two
+experiments that show the cipher leaking.
 
 ## License
 
