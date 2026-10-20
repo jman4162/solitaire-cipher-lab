@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_web import BUILDERS, DATA  # noqa: E402
 
-from solitaire_lab.trace.schema import from_dict, replay  # noqa: E402
+from solitaire_lab.trace.schema import from_dict, replay, validate  # noqa: E402
 
 
 @pytest.mark.parametrize("name", sorted(BUILDERS))
@@ -33,9 +33,10 @@ def test_committed_file_matches_a_fresh_build(name):
 
 @pytest.mark.parametrize("name", ["keystream-trace.json", "message-trace.json"])
 def test_shipped_traces_replay(name):
-    """A trace the page animates must be one the engine can re-execute."""
+    """A trace the page animates must be one the engine can re-execute, round by round."""
     trace = from_dict(json.loads((DATA / name).read_text()))
     assert replay(trace.initial_deck, trace.events) == trace.final_deck
+    assert validate(trace) == trace.final_deck
 
 
 def test_keystream_trace_contains_the_discarded_joker_round():
@@ -63,9 +64,11 @@ def test_reuse_data_shows_the_key_cancelling():
     data = json.loads((DATA / "reuse.json").read_text())
     assert data["key_cancelled"] is True
     assert data["cipher_difference"] == data["plain_difference"]
+    assert data["continued"]["key_cancelled"] is False
 
 
 def test_bias_data_shows_an_excess_over_ideal():
     data = json.loads((DATA / "bias.json").read_text())
     assert data["observed_rate"] > data["ideal_rate"]
     assert 1.0 < data["excess_ratio"] < 1.5
+    assert data["ideal_rate"] < data["ci_low"] < data["observed_rate"] < data["ci_high"]

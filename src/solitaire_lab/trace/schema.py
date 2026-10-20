@@ -23,7 +23,7 @@ from ..steps import (
 )
 from .events import Trace, TraceEvent
 
-__all__ = ["SCHEMA_VERSION", "to_dict", "to_json", "from_dict", "from_json", "replay"]
+__all__ = ["SCHEMA_VERSION", "to_dict", "to_json", "from_dict", "from_json", "replay", "validate"]
 
 SCHEMA_VERSION = 1
 
@@ -98,13 +98,15 @@ def replay(initial_deck: Deck, events: tuple[TraceEvent, ...]) -> Deck:
 
     This is the package's central invariant: re-running the steps a trace claims
     were taken must reproduce, event for event, the decks the trace recorded.  A
-    trace is therefore an executable proof of what the engine did, and any
-    renderer built on it is showing the real computation.
+    trace that passes is a replay-verified record of what the engine did, which
+    is what lets the renderers draw from traces alone.
 
-    Every recorded field is checked, not only the deck: the output card, the
-    affected positions and the metadata a renderer draws from.  A round's
-    ordinary count cut must be followed by its output (or, while keying, by the
-    letter's count cut), so a trace with its outputs stripped does not replay.
+    For each event, the deck, the affected positions, the output card and the
+    metadata must all match a fresh run of that step.  Metadata must match
+    exactly; the only extra key allowed is ``letter`` on a keying count cut.  A
+    round's ordinary count cut must be followed by its output (or, while keying,
+    by the letter's count cut).  ``validate`` adds the checks that need the
+    whole trace: round numbering, phase order and the output list.
     """
     deck = initial_deck
     pending_output = None
@@ -119,7 +121,9 @@ def replay(initial_deck: Deck, events: tuple[TraceEvent, ...]) -> Deck:
             if step is None:
                 raise ValueError(f"cannot replay unknown phase: {event.phase!r}")
             result = step(deck)
-        recorded_meta = {key: event.meta.get(key) for key in result.metadata}
+        recorded_meta = dict(event.meta)
+        if letter_cut:
+            recorded_meta.pop("letter", None)
         if (
             result.deck != event.after
             or tuple(result.affected) != tuple(event.affected)
@@ -132,6 +136,39 @@ def replay(initial_deck: Deck, events: tuple[TraceEvent, ...]) -> Deck:
     if pending_output is not None:
         raise ValueError(f"replay diverged at round {pending_output}: the round has no output step")
     return deck
+
+
+_ROUND_STEPS = (Phase.MOVE_JOKER_A, Phase.MOVE_JOKER_B, Phase.TRIPLE_CUT, Phase.COUNT_CUT)
+
+
+def validate(trace: Trace) -> Deck:
+    """Replay a whole trace and check that it is a well-formed Solitaire run.
+
+    On top of ``replay``: rounds are numbered 1, 2, 3 ... with no gaps; every
+    round is the four deck steps followed by either an output step or, while
+    keying, a letter count cut; and ``trace.output`` lists exactly the values of
+    the non-joker output cards, in order.  Returns the final deck.
+    """
+    final = replay(trace.initial_deck, trace.events)
+    events = trace.events
+    if len(events) % 5:
+        raise ValueError(f"invalid trace: {len(events)} events is not a whole number of rounds")
+    for start in range(0, len(events), 5):
+        number = start // 5 + 1
+        block = events[start : start + 5]
+        if any(event.round != number for event in block):
+            raise ValueError(f"invalid trace: round {number} is misnumbered")
+        if tuple(event.phase for event in block[:4]) != _ROUND_STEPS:
+            raise ValueError(f"invalid trace: round {number} steps are out of order")
+        last = block[4]
+        if not (
+            last.phase == Phase.OUTPUT or (last.phase == Phase.COUNT_CUT and last.meta.get("from_letter"))
+        ):
+            raise ValueError(f"invalid trace: round {number} does not end in an output or a letter cut")
+    outputs = tuple(e.output.value for e in events if e.phase == Phase.OUTPUT and e.output is not None)
+    if outputs != tuple(trace.output):
+        raise ValueError("invalid trace: the output list does not match the output cards")
+    return final
 
 
 def _plain(value: Any) -> Any:

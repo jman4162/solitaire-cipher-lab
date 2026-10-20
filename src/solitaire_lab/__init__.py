@@ -23,7 +23,7 @@ from .cipher import CipherResult, decrypt, encrypt
 from .deck import ORDERED_DECK, Deck, format_deck, parse_deck, validate_deck
 from .keying import explicit_deck, ordered_deck, passphrase_deck, shuffled_deck
 from .keystream import KeystreamResult, generate, generate_fast
-from .trace import Trace, TraceEvent, replay
+from .trace import Trace, TraceEvent, replay, validate
 
 try:
     __version__ = _version("solitaire-cipher-lab")
@@ -54,5 +54,6 @@ __all__ = [
     "Trace",
     "TraceEvent",
     "replay",
+    "validate",
     "__version__",
 ]

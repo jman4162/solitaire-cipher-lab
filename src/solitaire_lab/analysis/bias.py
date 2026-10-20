@@ -26,16 +26,24 @@ __all__ = ["measure", "render", "IDEAL_REPEAT_RATE"]
 IDEAL_REPEAT_RATE = 1 / 26
 
 
+BOOTSTRAP_RESAMPLES = 1000
+
+
 def measure(*, samples: int = 2000, length: int = 200, seed: int = 0) -> dict[str, Any]:
     """Sample many keystreams and count adjacent repeated letters.
 
     Uses the non-traced fast path: a run of this size is several times quicker
     that way, and never allocates the millions of trace events that a fully
     traced run of the same length would.
+
+    Adjacent pairs within one keystream are not independent, so the 95%
+    interval is a bootstrap over decks: resample whole decks with replacement
+    and recompute the rate.
     """
     rng = random.Random(seed)
     repeats = 0
     pairs = 0
+    per_deck: list[int] = []
     letter_counts = dict.fromkeys((chr(ord("A") + i) for i in range(26)), 0)
 
     for _ in range(samples):
@@ -45,12 +53,13 @@ def measure(*, samples: int = 2000, length: int = 200, seed: int = 0) -> dict[st
         letters = [value_to_letter(v) for v in values]
         for letter in letters:
             letter_counts[letter] += 1
-        for a, b in zip(letters, letters[1:], strict=False):
-            pairs += 1
-            if a == b:
-                repeats += 1
+        deck_repeats = sum(a == b for a, b in zip(letters, letters[1:], strict=False))
+        per_deck.append(deck_repeats)
+        repeats += deck_repeats
+        pairs += len(letters) - 1
 
     observed = repeats / pairs if pairs else 0.0
+    ci_low, ci_high = _bootstrap_interval(per_deck, length - 1, seed)
     total_letters = sum(letter_counts.values())
     return {
         "samples": samples,
@@ -61,10 +70,24 @@ def measure(*, samples: int = 2000, length: int = 200, seed: int = 0) -> dict[st
         "observed_rate": observed,
         "ideal_rate": IDEAL_REPEAT_RATE,
         "excess_ratio": observed / IDEAL_REPEAT_RATE if IDEAL_REPEAT_RATE else 0.0,
+        "ci_level": 0.95,
+        "ci_low": ci_low,
+        "ci_high": ci_high,
+        "bootstrap_resamples": BOOTSTRAP_RESAMPLES,
         "letter_frequencies": {k: v / total_letters for k, v in letter_counts.items()}
         if total_letters
         else {},
     }
+
+
+def _bootstrap_interval(per_deck: list[int], pairs_per_deck: int, seed: int) -> tuple[float, float]:
+    """A 95% percentile interval for the repeat rate, resampling decks."""
+    if not per_deck or pairs_per_deck <= 0:
+        return 0.0, 0.0
+    rng = random.Random(f"bootstrap-{seed}")
+    n = len(per_deck)
+    rates = sorted(sum(rng.choices(per_deck, k=n)) / (n * pairs_per_deck) for _ in range(BOOTSTRAP_RESAMPLES))
+    return rates[int(0.025 * BOOTSTRAP_RESAMPLES)], rates[int(0.975 * BOOTSTRAP_RESAMPLES) - 1]
 
 
 def render(report: dict[str, Any]) -> str:
@@ -80,12 +103,15 @@ def render(report: dict[str, Any]) -> str:
         "",
         f"  an ideal 26-letter stream repeats   {ideal:.4%}",
         f"  Solitaire's keystream repeats       {observed:.4%}",
+        f"  95% interval (bootstrap over decks) {report['ci_low']:.4%} to {report['ci_high']:.4%}",
         f"  excess                              {report['excess_ratio']:.2f}x",
         "",
-        "A stream cipher is supposed to be indistinguishable from random.",
-        "This one is distinguishable with nothing more than a counter, which",
-        "is why 'it produces letters that look scrambled' is not a security",
-        "argument. Modern stream ciphers are designed — and analysed — so that",
-        "no such statistic separates their output from noise.",
+        "A stream cipher is supposed to be computationally indistinguishable",
+        "from random. This one is distinguishable with nothing more than a",
+        "counter, so 'its letters look scrambled' is no security argument.",
+        "Telling the stream apart from random is a weaker result than reading a",
+        "given short message, but it is the property a stream cipher promises.",
+        "Modern stream ciphers are designed and analysed so that no test that",
+        "can feasibly be run separates their output from random.",
     ]
     return "\n".join(lines)

@@ -36,6 +36,31 @@ class TestKeyReuse:
         assert len(report["plaintext_1"]) == len(report["plaintext_2"])
         assert report["key_cancelled"]
 
+    def test_reset_matches_two_real_encryptions(self, report):
+        """The demo must agree with encrypt(), not with its own arithmetic."""
+        from solitaire_lab.cipher import encrypt
+        from solitaire_lab.keying import passphrase_deck
+
+        start = passphrase_deck("DEMOKEY")[0]
+        assert encrypt(report["plaintext_1"], start).text == report["ciphertext_1"]
+        assert encrypt(report["plaintext_2"], start).text == report["ciphertext_2"]
+
+    def test_continuing_the_deck_does_not_cancel(self, report):
+        cont = report["continued"]
+        assert cont["key_cancelled"] is False
+        assert cont["cipher_difference"] != report["plain_difference"]
+        assert cont["keystream"] != report["keystream"]
+
+    def test_continued_keystream_is_the_next_stretch(self, report):
+        """Continuing reproduces letters 13-24 of one long keystream."""
+        from solitaire_lab.cards import value_to_letter
+        from solitaire_lab.keying import passphrase_deck
+        from solitaire_lab.keystream import generate
+
+        width = len(report["plaintext_1"])
+        long = generate(passphrase_deck("DEMOKEY")[0], 2 * width).values
+        assert report["continued"]["keystream"] == "".join(value_to_letter(v) for v in long[width:])
+
     def test_render_mentions_the_identity(self, report):
         text = reuse.render(report)
         assert "C1 - C2" in text and "P1 - P2" in text

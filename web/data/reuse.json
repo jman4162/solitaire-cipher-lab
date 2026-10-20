@@ -2,6 +2,12 @@
  "cipher_difference": "IOZIXJGSJGRZZZZ",
  "ciphertext_1": "DUJLCKFKADMGBHE",
  "ciphertext_2": "UFJCEAYRQWUGBHE",
+ "continued": {
+  "cipher_difference": "SYCHHFVVLPPIHVK",
+  "ciphertext_2": "KVGDUEJOONWXTLT",
+  "key_cancelled": false,
+  "keystream": "SQMLPDPNUTRJVNV"
+ },
  "key_cancelled": true,
  "keystream": "CAPKZZEQWCPSDJG",
  "passphrase": "SHAREDKEY",

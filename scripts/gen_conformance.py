@@ -30,7 +30,14 @@ from solitaire_lab.cipher import encrypt  # noqa: E402
 from solitaire_lab.deck import ORDERED_DECK, validate_deck  # noqa: E402
 from solitaire_lab.keying import passphrase_deck  # noqa: E402
 from solitaire_lab.keystream import generate  # noqa: E402
-from solitaire_lab.trace.schema import to_dict  # noqa: E402
+from solitaire_lab.trace.schema import to_dict, validate  # noqa: E402
+
+
+def checked(trace):
+    """Serialize a trace only after validate() accepts it, so no malformed vector ships."""
+    validate(trace)
+    return to_dict(trace)
+
 
 OUT = ROOT / "tests" / "conformance"
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -99,7 +106,7 @@ def build(*, decks: int, length: int, keyings: int, messages: int, seed: int) ->
                 "deck": deck_codes(deck),
                 "length": 8,
                 "values": list(result.values),
-                "trace": to_dict(result.trace),
+                "trace": checked(result.trace),
             }
         )
 
@@ -113,7 +120,7 @@ def build(*, decks: int, length: int, keyings: int, messages: int, seed: int) ->
                 "deck": deck_codes(deck),
                 "length": length,
                 "values": list(result.values),
-                "trace": to_dict(result.trace),
+                "trace": checked(result.trace),
             }
         )
 
@@ -126,7 +133,7 @@ def build(*, decks: int, length: int, keyings: int, messages: int, seed: int) ->
                 "name": f"passphrase {phrase}",
                 "passphrase": phrase,
                 "deck": deck_codes(deck),
-                "trace": to_dict(trace),
+                "trace": checked(trace),
             }
         )
 
@@ -142,7 +149,7 @@ def build(*, decks: int, length: int, keyings: int, messages: int, seed: int) ->
                 "plaintext": message,
                 "ciphertext": result.text,
                 "keystream": list(result.keystream),
-                "trace": to_dict(result.trace),
+                "trace": checked(result.trace),
             }
         )
 
